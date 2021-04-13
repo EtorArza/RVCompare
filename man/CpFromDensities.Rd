@@ -40,8 +40,8 @@ CpFromDensities(densityX_A, densityX_A, c(-10,10))
 densityX_A <- normalDensity(-2,1)
 densityX_B <- uniformDensity(c(-2,2))
 # Cp(X_A,X_B) = 1 - Cp(X_B, X_A)
-CpFromDensities(densityX_A, densityX_B, c(-Inf,Inf))
-1 - CpFromDensities(densityX_B, densityX_A, c(-Inf,Inf))
+CpFromDensities(densityX_A, densityX_B, c(-8,4))
+1 - CpFromDensities(densityX_B, densityX_A, c(-8,4))
 }
 \seealso{
 \code{\link{CdFromDensities}}

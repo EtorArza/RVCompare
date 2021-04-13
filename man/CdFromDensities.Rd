@@ -45,13 +45,14 @@ legend(x = c(0.0325, 0.045), y = c(200, 250),legend=c("X_A", "X_B"), col=c("red"
 
 
 ### Example 4 ###
+# The dominance factor ignores the mass of the probability where the distribution functinos are equal.
 densityX_A <- uniformDensity(c(0.1, 0.3))
 densityX_B <- uniformDensity(c(-0.2,0.5))
-CdFromDensities(densityX_A, densityX_B, xlims = c(-6,6))
+CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
 
-densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))), xlims = c(-6,6))
-densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))), xlims = c(-6,6))
-CdFromDensities(densityX_A, densityX_B, xlims = c(-6,6))
+densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))), xlims = c(-2,2))
+densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))), xlims = c(-2,2))
+CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
 }
 \seealso{
 \code{\link{CpFromDensities}}

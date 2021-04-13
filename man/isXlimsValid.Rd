@@ -2,7 +2,7 @@
 % Please edit documentation in R/RVCompare.R
 \name{isXlimsValid}
 \alias{isXlimsValid}
-\title{Check if xlims is a tuple that represents a valid interval in the real space.}
+\title{Check if xlims is a tuple that represents a valid bounded interval in the real space.}
 \usage{
 isXlimsValid(xlims)
 }
@@ -13,7 +13,7 @@ isXlimsValid(xlims)
 TRUE if it is a valid tuple. Otherwise prints error mesage and returns FALSE
 }
 \description{
-Check if xlims is a tuple that represents a valid interval in the real space.
+Check if xlims is a tuple that represents a valid bounded interval in the real space.
 }
 \examples{
 xlims(c(-2,2))

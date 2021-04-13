@@ -1,4 +1,5 @@
 library(stats)
+library(pracma)
 
 
 ################## Comparison Functions ##################
@@ -44,13 +45,14 @@ library(stats)
 #'
 #'
 #' ### Example 4 ###
+#' # The dominance factor ignores the mass of the probability where the distribution functinos are equal.
 #' densityX_A <- uniformDensity(c(0.1, 0.3))
 #' densityX_B <- uniformDensity(c(-0.2,0.5))
-#' CdFromDensities(densityX_A, densityX_B, xlims = c(-6,6))
+#' CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
 #'
-#' densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))), xlims = c(-6,6))
-#' densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))), xlims = c(-6,6))
-#' CdFromDensities(densityX_A, densityX_B, xlims = c(-6,6))
+#' densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))), xlims = c(-2,2))
+#' densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))), xlims = c(-2,2))
+#' CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
 CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
@@ -77,8 +79,8 @@ CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
 
   cumX_A = cumulativeFromDensity(densityX_A, xlims)
   cumX_B = cumulativeFromDensity(densityX_B, xlims)
-  cA = integrate(function(x) {as.integer(abs(cumX_A(x) - cumX_B(x)) > EPSILON) * densityX_A(x)}, lower=xlims[[1]], upper=xlims[[2]])$value # the cA in the paper is cA^-1
-  cB = integrate(function(x) {as.integer(abs(cumX_A(x) - cumX_B(x)) > EPSILON) * densityX_B(x)}, lower=xlims[[1]], upper=xlims[[2]])$value # the cB in the paper is cB^-1
+  cA = integral(function(x) {as.integer(abs(cumX_A(x) - cumX_B(x)) > EPSILON) * densityX_A(x)}, xmin=xlims[[1]], xmax=xlims[[2]], method = "Simpson") # the cA in the paper is cA^-1
+  cB = integral(function(x) {as.integer(abs(cumX_A(x) - cumX_B(x)) > EPSILON) * densityX_B(x)}, xmin=xlims[[1]], xmax=xlims[[2]], method = "Simpson") # the cB in the paper is cB^-1
 
   if (min(cA, cB) < EPSILON) {
     return(0.5)
@@ -95,7 +97,7 @@ CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
     }
     }) }
 
-  return(0.5 *integrate(f_to_integrate, lower = xlims[[1]], upper = xlims[[2]])$value + 0.5)
+  return(0.5 *integral(f_to_integrate, xmin = xlims[[1]], xmax = xlims[[2]], method = "Simpson") + 0.5)
 
 }
 
@@ -146,8 +148,8 @@ CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
 #' densityX_A <- normalDensity(-2,1)
 #' densityX_B <- uniformDensity(c(-2,2))
 #' # Cp(X_A,X_B) = 1 - Cp(X_B, X_A)
-#' CpFromDensities(densityX_A, densityX_B, c(-Inf,Inf))
-#' 1 - CpFromDensities(densityX_B, densityX_A, c(-Inf,Inf))
+#' CpFromDensities(densityX_A, densityX_B, c(-8,4))
+#' 1 - CpFromDensities(densityX_B, densityX_A, c(-8,4))
 CpFromDensities <- function(densityX_A, densityX_B, xlims) {
 
 
@@ -224,43 +226,39 @@ isFunctionDensity <- function(f, xlims, tol=1e-3) {
     return(FALSE)
   }
 
-  # ignore bounded checks for infinite domain functions
-  if (xlims[[1]] != -Inf && xlims[[2]] != Inf) {
+  lowest_value = Inf
+  arg_lowest_value = 0
+  highest_value = -Inf
+  arg_highest_value = 0
 
-    lowest_value = Inf
-    arg_lowest_value = 0
-    highest_value = -Inf
-    arg_highest_value = 0
-
-    nPointsChecked = 100
-    for (i in 0:nPointsChecked) {
-      x = xlims[[1]] + (xlims[[2]] - xlims[[1]]) * i / nPointsChecked
-      if (f(x) < lowest_value) {
-        lowest_value = f(x)
-        arg_lowest_value = x
-      }
-      if(f(x) > highest_value)
-      {
-        highest_value = f(x)
-        arg_highest_value = x
-      }
-
+  nPointsChecked = 100
+  for (i in 0:nPointsChecked) {
+    x = xlims[[1]] + (xlims[[2]] - xlims[[1]]) * i / nPointsChecked
+    if (f(x) < lowest_value) {
+      lowest_value = f(x)
+      arg_lowest_value = x
     }
-
-
-
-    if (lowest_value < 0 ) {
-      print(paste("ERROR: for f to be correctly defined as a probability denstiy function, it needs to be positively defined in its domain. f(",toString(arg_lowest_value), ") = ", toString(lowest_value), sep = ""))
-      return(FALSE)
-    }
-    if( highest_value > 1e6 / (xlims[[2]] - xlims[[1]]) )
+    if(f(x) > highest_value)
     {
-      print(paste("ERROR: the value of the density is too high in x = ", toString(arg_highest_value), ", where f(x) = ", toString(highest_value), ". This could mean that f is not bounded.", sep = ""))
-      return(FALSE)
+      highest_value = f(x)
+      arg_highest_value = x
     }
+
   }
 
-  integrand = integrate(f = f, lower = xlims[[1]], upper = xlims[[2]])["value"][[1]]
+
+  if (lowest_value < 0 ) {
+    print(paste("ERROR: for f to be correctly defined as a probability denstiy function, it needs to be positively defined in its domain. f(",toString(arg_lowest_value), ") = ", toString(lowest_value), sep = ""))
+    return(FALSE)
+  }
+  if( highest_value > 1e6 / (xlims[[2]] - xlims[[1]]) )
+  {
+    print(paste("ERROR: the value of the density is too high in x = ", toString(arg_highest_value), ", where f(x) = ", toString(highest_value), ". This could mean that f is not bounded.", sep = ""))
+    return(FALSE)
+  }
+
+
+  integrand = integral(f, xmin = xlims[[1]], xmax = xlims[[2]])
   if (  !(abs(integrand  -1 ) < tol)  )  {
     print(paste("ERROR: the integral of a density function in its domain must be 1. The value of the integral was ", toString(integrand), " instead.", sep=""))
     return(FALSE)
@@ -407,7 +405,7 @@ mixtureDensity <- function(densities, xlims, weights=NULL) {
 
 ################## Internal functions ##################
 
-#' Check if xlims is a tuple that represents a valid interval in the real space.
+#' Check if xlims is a tuple that represents a valid bounded interval in the real space.
 #' @param xlims the tuple to be checked.
 #' @return TRUE if it is a valid tuple. Otherwise prints error mesage and returns FALSE
 #' @examples
@@ -434,6 +432,12 @@ isXlimsValid <- function(xlims) {
     print("ERROR: xlims[[1]] needs to be lower than xlims [[2]] for xlims to be a valid interval.")
     return(FALSE)
   }
+
+  if (xlims[[1]] == -Inf | xlims[[2]] == Inf) {
+    print("ERROR: xlims needs to be a bounded interval.")
+    return(FALSE)
+  }
+
 
   return(TRUE)
 }
@@ -466,7 +470,7 @@ cumulativeFromDensity <- function(densityX, xlims, sanityChecks = TRUE) {
     {
       print(paste("ERROR: x = ", toString(x), " is out of the domain defined by xlims = ", toString(xlims), sep=""))
     }
-    return(integrate(densityX, lower=xlims[[1]], upper=x)$value)
+    return(integral(densityX, xmin=xlims[[1]], xmax=x, method="Simpson"))
     }) }
   )
 }
