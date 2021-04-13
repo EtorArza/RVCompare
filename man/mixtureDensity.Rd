@@ -4,15 +4,17 @@
 \alias{mixtureDensity}
 \title{A mixture of two or more distributions}
 \usage{
-mixtureDensity(densities, weights = NULL)
+mixtureDensity(densities, xlims, weights = NULL)
 }
 \arguments{
 \item{densities}{the probability density functions to be combined.}
 
+\item{xlims}{the domain of definition of the distributions in the mixture, and consequently, of the returned mixture density.}
+
 \item{weights}{(optional) the weights of the distributions in the mixture. If it is not give, equal weights are assumed.}
 }
 \value{
-Returns a callable function with a single parameter that returns the probability of the uniform distribution in each point.
+Returns a callable function with a single parameter that returns the probability of the mixture distribution each point.
 }
 \description{
 Returns the density function of the mixture distribution.

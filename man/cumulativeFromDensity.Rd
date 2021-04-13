@@ -4,12 +4,12 @@
 \alias{cumulativeFromDensity}
 \title{Get the cumulative distribution function given the distribution function.}
 \usage{
-cumulativeFromDensity(densityX, xlims = c(-Inf, Inf), sanityChecks = TRUE)
+cumulativeFromDensity(densityX, xlims, sanityChecks = TRUE)
 }
 \arguments{
 \item{densityX}{The probability density function.}
 
-\item{xlims}{the domain of definition of the random variable. If not given, (-Inf, Inf) is assumed.}
+\item{xlims}{the domain of definition of the density function.}
 
 \item{sanityChecks}{(optional parameter, default = TRUE) boolean value indicating wether to check if the density function is correctly defined.}
 }

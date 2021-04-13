@@ -24,11 +24,7 @@ Basically, we are measuring the amount of mass of X_A in which the cumulative di
 # If two symmetric distributions are centered in the same point (x = 0 in this case), then their Cd will be 0.5.
 densityX_A <- normalDensity(0,1)
 densityX_B <- uniformDensity(c(-2,2))
-Cd = CdFromDensities(densityX_A, densityX_B, c(-5,5))
-plot(densityX_A, from=-5, to=5, type="l",  col="red", xlab="x", ylab="probability density")
-curve(densityX_B, add=TRUE, col="blue", type="l", lty=2)
-mtext(paste("Cd(X_A, X_B) =", format(round(Cd, 3), nsmall = 3)), side=3) # add Cd to plot as text
-legend(x = c(-4.5, -2), y = c(0.325, 0.4),legend=c("X_A", "X_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
+CdFromDensities(densityX_A, densityX_B, c(-5,5))
 
 
 ### Example 2 ###
@@ -37,11 +33,25 @@ CdFromDensities(densityX_A, densityX_A, c(-10,10))
 
 
 ### Example 3 ###
-densityX_A <- normalDensity(-2,1)
-densityX_B <- uniformDensity(c(-2,2))
-# Cd(X_A,X_B) = 1 - Cd(X_B, X_A)
-CpFromDensities(densityX_A, densityX_B, c(-Inf,Inf))
-1 - CpFromDensities(densityX_B, densityX_A, c(-Inf,Inf))
+# example on https://etorarza.github.io/pages/2021-interactive-comparing-RV.html
+tau <- 0.11
+densityX_A <- normalDensity(0.05,0.0015)
+densityX_B <- mixtureDensity(c(normalDensity(0.05025,0.0015), normalDensity(0.04525, 0.0015)), xlims = c(.03,.07), weights = c(1 - tau, tau))
+plot(densityX_A, from=0.03, to=0.07, type="l",  col="red", xlab="x", ylab="probability density")
+curve(densityX_B, add=TRUE, col="blue", type="l", lty=2)
+Cd <- CdFromDensities(densityX_A, densityX_B, c(.03,.07))
+mtext(paste("Cd(X_A, X_B) =", format(round(Cd, 3), nsmall = 3)), side=3) # add Cd to plot as text
+legend(x = c(0.0325, 0.045), y = c(200, 250),legend=c("X_A", "X_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
+
+
+### Example 4 ###
+densityX_A <- uniformDensity(c(0.1, 0.3))
+densityX_B <- uniformDensity(c(-0.2,0.5))
+CdFromDensities(densityX_A, densityX_B, xlims = c(-6,6))
+
+densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))), xlims = c(-6,6))
+densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))), xlims = c(-6,6))
+CdFromDensities(densityX_A, densityX_B, xlims = c(-6,6))
 }
 \seealso{
 \code{\link{CpFromDensities}}

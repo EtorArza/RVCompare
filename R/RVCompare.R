@@ -23,11 +23,7 @@ library(stats)
 #' # If two symmetric distributions are centered in the same point (x = 0 in this case), then their Cd will be 0.5.
 #' densityX_A <- normalDensity(0,1)
 #' densityX_B <- uniformDensity(c(-2,2))
-#' Cd = CdFromDensities(densityX_A, densityX_B, c(-5,5))
-#' plot(densityX_A, from=-5, to=5, type="l",  col="red", xlab="x", ylab="probability density")
-#' curve(densityX_B, add=TRUE, col="blue", type="l", lty=2)
-#' mtext(paste("Cd(X_A, X_B) =", format(round(Cd, 3), nsmall = 3)), side=3) # add Cd to plot as text
-#' legend(x = c(-4.5, -2), y = c(0.325, 0.4),legend=c("X_A", "X_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
+#' CdFromDensities(densityX_A, densityX_B, c(-5,5))
 #'
 #'
 #' ### Example 2 ###
@@ -36,12 +32,25 @@ library(stats)
 #'
 #'
 #' ### Example 3 ###
-#' densityX_A <- normalDensity(-2,1)
-#' densityX_B <- uniformDensity(c(-2,2))
-#' # Cd(X_A,X_B) = 1 - Cd(X_B, X_A)
-#' CpFromDensities(densityX_A, densityX_B, c(-Inf,Inf))
-#' 1 - CpFromDensities(densityX_B, densityX_A, c(-Inf,Inf))
-
+#' # example on https://etorarza.github.io/pages/2021-interactive-comparing-RV.html
+#' tau <- 0.11
+#' densityX_A <- normalDensity(0.05,0.0015)
+#' densityX_B <- mixtureDensity(c(normalDensity(0.05025,0.0015), normalDensity(0.04525, 0.0015)), xlims = c(.03,.07), weights = c(1 - tau, tau))
+#' plot(densityX_A, from=0.03, to=0.07, type="l",  col="red", xlab="x", ylab="probability density")
+#' curve(densityX_B, add=TRUE, col="blue", type="l", lty=2)
+#' Cd <- CdFromDensities(densityX_A, densityX_B, c(.03,.07))
+#' mtext(paste("Cd(X_A, X_B) =", format(round(Cd, 3), nsmall = 3)), side=3) # add Cd to plot as text
+#' legend(x = c(0.0325, 0.045), y = c(200, 250),legend=c("X_A", "X_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
+#'
+#'
+#' ### Example 4 ###
+#' densityX_A <- uniformDensity(c(0.1, 0.3))
+#' densityX_B <- uniformDensity(c(-0.2,0.5))
+#' CdFromDensities(densityX_A, densityX_B, xlims = c(-6,6))
+#'
+#' densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))), xlims = c(-6,6))
+#' densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))), xlims = c(-6,6))
+#' CdFromDensities(densityX_A, densityX_B, xlims = c(-6,6))
 CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
@@ -52,6 +61,7 @@ CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
   {
     return(NULL)
   }
+
 
   if(!isFunctionDensity(densityX_A, xlims))
   {
@@ -65,11 +75,10 @@ CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
     return(NULL)
   }
 
-  cumX_A = cumulativeFromDensity(densityX_A)
-  cumX_B = cumulativeFromDensity(densityX_B)
-
-  cA = integrate(function(x) (as.integer(abs(cumX_A(x) - cumX_B(x)) < EPSILON) * densityX_A(x)), lower=xlims[[1]], upper=xlims[[2]])$value # the cA in the paper is cA^-1
-  cB = integrate(function(x) (as.integer(abs(cumX_A(x) - cumX_B(x)) < EPSILON) * densityX_B(x)), lower=xlims[[1]], upper=xlims[[2]])$value # the cB in the paper is cB^-1
+  cumX_A = cumulativeFromDensity(densityX_A, xlims)
+  cumX_B = cumulativeFromDensity(densityX_B, xlims)
+  cA = integrate(function(x) {as.integer(abs(cumX_A(x) - cumX_B(x)) > EPSILON) * densityX_A(x)}, lower=xlims[[1]], upper=xlims[[2]])$value # the cA in the paper is cA^-1
+  cB = integrate(function(x) {as.integer(abs(cumX_A(x) - cumX_B(x)) > EPSILON) * densityX_B(x)}, lower=xlims[[1]], upper=xlims[[2]])$value # the cB in the paper is cB^-1
 
   if (min(cA, cB) < EPSILON) {
     return(0.5)
@@ -78,16 +87,15 @@ CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
 
   f_to_integrate = function(y) { sapply(y, function(x) {
     if (cumX_A(x) > cumX_B(x) + EPSILON) {
-      return(densityX_A(x))
+      return(densityX_A(x) / cA)
     }else if(cumX_B(x) >  cumX_A(x) + EPSILON){
-      return(-densityX_B(x))
+      return(-densityX_B(x) / cB)
     }else{
       return(0.0)
     }
-    densityX_A / cA
     }) }
 
-  return(integrate(f_to_integrate, lower = xlims[[1]], upper = xlims[[2]])$value)
+  return(0.5 *integrate(f_to_integrate, lower = xlims[[1]], upper = xlims[[2]])$value + 0.5)
 
 }
 
@@ -337,8 +345,9 @@ uniformDensity <- function(xlims) {
 #' Returns the density function of the mixture distribution.
 #' The returned function is a single parameter function that returns the probability of the mixture in that point.
 #' @param densities the probability density functions to be combined.
+#' @param xlims the domain of definition of the distributions in the mixture, and consequently, of the returned mixture density.
 #' @param weights (optional) the weights of the distributions in the mixture. If it is not give, equal weights are assumed.
-#' @return Returns a callable function with a single parameter that returns the probability of the uniform distribution in each point.
+#' @return Returns a callable function with a single parameter that returns the probability of the mixture distribution each point.
 #' @export
 #' @examples
 #' #If parameter weights not given, equal weights are assumed.
@@ -347,8 +356,7 @@ uniformDensity <- function(xlims) {
 #'
 #' dist2 <- mixtureDensity(c(normalDensity(-2,1), normalDensity(2,1)), weights=c(0.8,0.2))
 #' plot(dist2, xlim = c(-5,5), xlab="x", ylab = "Probability density", main="Mixture of two Gaussians with different weights", cex.main=0.85)
-
-mixtureDensity <- function(densities, weights=NULL) {
+mixtureDensity <- function(densities, xlims, weights=NULL) {
 
 
   # parameter checks
@@ -402,10 +410,9 @@ mixtureDensity <- function(densities, weights=NULL) {
 #' Check if xlims is a tuple that represents a valid interval in the real space.
 #' @param xlims the tuple to be checked.
 #' @return TRUE if it is a valid tuple. Otherwise prints error mesage and returns FALSE
-#' @example
-#' dist1 <- normalDensity(0,1)
-#' cum1 <- cumulativeFromDensity(dist1)
-#' @keywords internal
+#' @examples
+#' xlims(c(-2,2))
+#' xlims(c(2,-2))
 isXlimsValid <- function(xlims) {
 
   if (missing(xlims)) {
@@ -435,17 +442,16 @@ isXlimsValid <- function(xlims) {
 
 #' Get the cumulative distribution function given the distribution function.
 #' @param densityX The probability density function.
-#' @param xlims the domain of definition of the random variable. If not given, (-Inf, Inf) is assumed.
+#' @param xlims the domain of definition of the density function.
 #' @param sanityChecks (optional parameter, default = TRUE) boolean value indicating wether to check if the density function is correctly defined.
 #' @return a callable function representing the cumulative distribution.
 #' @keywords internal
-cumulativeFromDensity <- function(densityX, xlims = c(-Inf,Inf), sanityChecks = TRUE) {
+cumulativeFromDensity <- function(densityX, xlims, sanityChecks = TRUE) {
+  if(!isXlimsValid(xlims))
+  {
+    return(NULL)
+  }
   if (sanityChecks) {
-    if(!isXlimsValid(xlims))
-    {
-      return(NULL)
-    }
-
     if(!isFunctionDensity(densityX, xlims))
     {
       print("ERROR: argument densityX_A is not a non discrete probability density function.")
@@ -461,7 +467,8 @@ cumulativeFromDensity <- function(densityX, xlims = c(-Inf,Inf), sanityChecks = 
       print(paste("ERROR: x = ", toString(x), " is out of the domain defined by xlims = ", toString(xlims), sep=""))
     }
     return(integrate(densityX, lower=xlims[[1]], upper=x)$value)
-    }) })
+    }) }
+  )
 }
 
 

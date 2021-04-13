@@ -15,4 +15,7 @@ TRUE if it is a valid tuple. Otherwise prints error mesage and returns FALSE
 \description{
 Check if xlims is a tuple that represents a valid interval in the real space.
 }
-\keyword{internal}
+\examples{
+xlims(c(-2,2))
+xlims(c(2,-2))
+}
