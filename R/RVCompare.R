@@ -475,9 +475,49 @@ cumulativeFromDensity <- function(densityX, xlims, sanityChecks = TRUE) {
   )
 }
 
+#' Get the ranks from the values of observed X_A and X_B. Ranks go from 0 to r_max, where r_max is the number of unique values in c(X_A_observed, X_B_observed)
+#' @param X_A_observed array of the samples (real values) of X_A.
+#' @param X_B_observed array of the samples (real values) of X_B.
+#' @param EPSILON (optional, default value 1e-20) when will two values be different.
+#' @return a list with three fields: X_A_ranks, X_B_ranks and r_max (the number of unique values minus 1).
+#' @keywords internal
+ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
+
+  n = length(X_A_observed)
+  m = length(X_B_observed)
+
+  all_values = c(X_A_observed, X_B_observed)
+
+  order = order(all_values)
+  order_original <- order
+  inv_order = array(data=0, dim = length(all_values))
+
+  for (i in 1:length(order)) {
+    inv_order[order[[i]]] = i
+  }
+
+
+  n_repeated <- 0
+  for (i in 1:(length(order_original)-1)) {
+    if (abs(all_values[[order[[i]]]] - all_values[[order[[i+1]]]]) < EPSILON) {
+      inv_order[[order[[i+1]]]] = inv_order[[order[[i]]]]
+      n_repeated = n_repeated + 1
+    }else{
+      inv_order[[order[[i+1]]]] = inv_order[[order[[i+1]]]] - n_repeated
+    }
+    print(n_repeated)
+  }
 
 
 
+  # print(all_values)
+  # print("order_original")
+  # print(order_original)
+  # print("order")
+  # print(order)
+  # print("inv_order")
+  # print(inv_order)
 
-
+  return(list("X_A_ranks"=inv_order[1:n]-1, "X_B_ranks"=inv_order[n+1:m]-1, "r_max"= n+m - n_repeated - 1))
+}
 
