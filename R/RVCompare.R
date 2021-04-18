@@ -2,6 +2,50 @@ library(stats)
 library(pracma)
 
 
+################## Main functions ##################
+
+
+#' Estimate X'_A and X'_B bounds with bootstrap 0.632
+#'
+#' Estimate the confidence intervals for the density estimations of X'_A and X'_B using bootstrap.
+#' As a bonus, in addition to the density, the bounds of the cumulative density are also compared.
+#'
+#' @param X_A_observed array of the observed samples (real values) of X_A.
+#' @param X_B_observed array of the observed samples (real values) of X_B.
+#' @param nOfQuantiles the number of points in the interval [0,1] in which the density is estimated.
+#' @param nOfBootstrapSamples (optional, default value 1e6) how many bootsrap samples to average.
+#' @param alpha (optional, default value 0.2) the error of the confidence interval.
+#' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
+#' @return Returns a list with the following fields:
+#'
+#' - p: values in the interval [0,1] that represent the nOfQuantiles points in which the densities are estimated. Useful for plotting.
+#'
+#' - X_prima_A_density_estimation: an array with the estimated probability densites of X_prima_A for each point in p.
+#'
+#' - X_prima_A_density_upper: an array with the upper bounds of confidence 1 - alpha of the density estimation of X_prima_A
+#'
+#' - X_prima_A_density_lower: an array with the lower bounds of confidence 1 - alpha of the density estimation of X_prima_A
+#'
+#' - X_prima_B_density_estimation: The same as X_prima_A_density_estimation for X'_B.
+#'
+#' - X_prima_B_density_upper: The same as X_prima_A_density_upper for X'_B
+#'
+#' - X_prima_B_density_lower: The same as X_prima_A_density_lower for X'_B
+#' @export
+#' @examples
+### Example 1 ###
+#'
+#'
+get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuantiles, nOfBootstrapSamples=1e6, alpha=0.2,  EPSILON=1e-20) {
+
+  if (EPSILON > 0.1 || EPSILON <= 0.0) {
+    print("ERROR: EPSILON must be in the interval (0,0.1).")
+  }
+
+}
+
+
+
 ################## Comparison Functions ##################
 
 
@@ -554,12 +598,11 @@ mixtureOfUniforms <- function(kernelPositions, kernelSize) {
 #' @examples
 #' X_A_observed <- c(0,2,1)
 #' X_B_observed <- c(1,6,1,3)
-#' res <- get_X_prima_AB(X_A_observed, X_B_observed)
+#' res <- get_X_prima_AB_density(X_A_observed, X_B_observed)
 #' x = 0:1001/1001
 #' matplot(x,cbind(res$X_prima_A(x),res$X_prima_B(x)),type="l",col=c("red","blue"), ylab='Probability density')
 #' legend(x = c(0.7, 1.0), y = c(2.0, 2.5),legend=c("X'_A", "X'_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
-
-get_X_prima_AB <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
+get_X_prima_AB_density <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
 
   ranksObj <- ranksOfObserved(X_A_observed, X_B_observed, EPSILON)
 

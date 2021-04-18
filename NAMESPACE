@@ -2,7 +2,8 @@
 
 export(CdFromDensities)
 export(CpFromDensities)
-export(get_X_prima_AB)
+export(get_X_prima_AB_bounds_bootstrap)
+export(get_X_prima_AB_density)
 export(isFunctionDensity)
 export(mixtureDensity)
 export(normalDensity)
