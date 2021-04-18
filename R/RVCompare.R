@@ -36,7 +36,7 @@ library(pracma)
 #' # example on https://etorarza.github.io/pages/2021-interactive-comparing-RV.html
 #' tau <- 0.11
 #' densityX_A <- normalDensity(0.05,0.0015)
-#' densityX_B <- mixtureDensity(c(normalDensity(0.05025,0.0015), normalDensity(0.04525, 0.0015)), xlims = c(.03,.07), weights = c(1 - tau, tau))
+#' densityX_B <- mixtureDensity(c(normalDensity(0.05025,0.0015), normalDensity(0.04525, 0.0015)), weights = c(1 - tau, tau))
 #' plot(densityX_A, from=0.03, to=0.07, type="l",  col="red", xlab="x", ylab="probability density")
 #' curve(densityX_B, add=TRUE, col="blue", type="l", lty=2)
 #' Cd <- CdFromDensities(densityX_A, densityX_B, c(.03,.07))
@@ -50,8 +50,8 @@ library(pracma)
 #' densityX_B <- uniformDensity(c(-0.2,0.5))
 #' CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
 #'
-#' densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))), xlims = c(-2,2))
-#' densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))), xlims = c(-2,2))
+#' densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))))
+#' densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))))
 #' CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
 CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
 
@@ -343,7 +343,6 @@ uniformDensity <- function(xlims) {
 #' Returns the density function of the mixture distribution.
 #' The returned function is a single parameter function that returns the probability of the mixture in that point.
 #' @param densities the probability density functions to be combined.
-#' @param xlims the domain of definition of the distributions in the mixture, and consequently, of the returned mixture density.
 #' @param weights (optional) the weights of the distributions in the mixture. If it is not give, equal weights are assumed.
 #' @return Returns a callable function with a single parameter that returns the probability of the mixture distribution each point.
 #' @export
@@ -354,7 +353,7 @@ uniformDensity <- function(xlims) {
 #'
 #' dist2 <- mixtureDensity(c(normalDensity(-2,1), normalDensity(2,1)), weights=c(0.8,0.2))
 #' plot(dist2, xlim = c(-5,5), xlab="x", ylab = "Probability density", main="Mixture of two Gaussians with different weights", cex.main=0.85)
-mixtureDensity <- function(densities, xlims, weights=NULL) {
+mixtureDensity <- function(densities, weights=NULL) {
 
 
   # parameter checks
@@ -505,7 +504,6 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
     }else{
       inv_order[[order[[i+1]]]] = inv_order[[order[[i+1]]]] - n_repeated
     }
-    print(n_repeated)
   }
 
 
@@ -520,4 +518,63 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
 
   return(list("X_A_ranks"=inv_order[1:n]-1, "X_B_ranks"=inv_order[n+1:m]-1, "r_max"= n+m - n_repeated - 1))
 }
+
+
+
+#' Get a mixture of uniform (AKA tophat) distributions of size 'kernelSize' centered in the points 'kernelPositions'.
+#' @param kernelPositions an array of real values that decribe the positions of the kernels.
+#' @param kernelSize The size of the uniform kernel: a positive float.
+#' @return a single parameter callable function that computes the probability density of the mixture in any point.
+#' @keywords internal
+mixtureOfUniforms <- function(kernelPositions, kernelSize) {
+
+  n = length(kernelPositions)
+  distributions = c()
+
+  for (i in 1:n) {
+    distributions = c(distributions,uniformDensity(c(kernelPositions[[i]] - kernelSize/2, kernelPositions[[i]] + kernelSize/2)))
+  }
+
+  return(mixtureDensity(distributions))
+}
+
+
+
+#' Get X'_A and X'_B from the observed values of X_A and X_B.
+#'
+#' X'_A and X'_B are two random variables defined in the interval [0,1] that have
+#' the same C_p and C_d as the kernel density estimates of the observed X_A and X_B,
+#' if a sufficiently small uniform kernel is used.
+#' @param X_A_observed array of the samples (real values) of X_A.
+#' @param X_B_observed array of the samples (real values) of X_B.
+#' @param EPSILON (optional, default value 1e-20) when will two values be different.
+#' @return a list with two fields X_prima_A and X_prima_B: each representing the density of the estimated distributions.
+#' @export
+#' @keywords internal
+#' @examples
+#' X_A_observed <- c(0,2,1)
+#' X_B_observed <- c(1,6,1,3)
+#' res <- get_X_prima_AB(X_A_observed, X_B_observed)
+#' x = 0:1001/1001
+#' matplot(x,cbind(res$X_prima_A(x),res$X_prima_B(x)),type="l",col=c("red","blue"), ylab='Probability density')
+#' legend(x = c(0.7, 1.0), y = c(2.0, 2.5),legend=c("X'_A", "X'_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
+
+get_X_prima_AB <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
+
+  ranksObj <- ranksOfObserved(X_A_observed, X_B_observed, EPSILON)
+
+  X_A_ranks <- ranksObj$X_A_ranks
+  X_B_ranks <- ranksObj$X_B_ranks
+  r_max <- ranksObj$r_max
+
+  kernelPositionsA <- X_A_ranks / (r_max + 1) + (0.5 / (r_max+1))
+  kernelPositionsB <- X_B_ranks / (r_max + 1) + (0.5 / (r_max+1))
+
+  kernelSize <- 1 / (r_max + 1)
+
+  return(list("X_prima_A"=mixtureOfUniforms(kernelPositionsA, kernelSize), "X_prima_B"=mixtureOfUniforms(kernelPositionsB, kernelSize)))
+}
+
+
+
 

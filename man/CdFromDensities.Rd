@@ -36,7 +36,7 @@ CdFromDensities(densityX_A, densityX_A, c(-10,10))
 # example on https://etorarza.github.io/pages/2021-interactive-comparing-RV.html
 tau <- 0.11
 densityX_A <- normalDensity(0.05,0.0015)
-densityX_B <- mixtureDensity(c(normalDensity(0.05025,0.0015), normalDensity(0.04525, 0.0015)), xlims = c(.03,.07), weights = c(1 - tau, tau))
+densityX_B <- mixtureDensity(c(normalDensity(0.05025,0.0015), normalDensity(0.04525, 0.0015)), weights = c(1 - tau, tau))
 plot(densityX_A, from=0.03, to=0.07, type="l",  col="red", xlab="x", ylab="probability density")
 curve(densityX_B, add=TRUE, col="blue", type="l", lty=2)
 Cd <- CdFromDensities(densityX_A, densityX_B, c(.03,.07))
@@ -50,8 +50,8 @@ densityX_A <- uniformDensity(c(0.1, 0.3))
 densityX_B <- uniformDensity(c(-0.2,0.5))
 CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
 
-densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))), xlims = c(-2,2))
-densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))), xlims = c(-2,2))
+densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))))
+densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))))
 CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
 }
 \seealso{

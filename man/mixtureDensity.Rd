@@ -4,12 +4,10 @@
 \alias{mixtureDensity}
 \title{A mixture of two or more distributions}
 \usage{
-mixtureDensity(densities, xlims, weights = NULL)
+mixtureDensity(densities, weights = NULL)
 }
 \arguments{
 \item{densities}{the probability density functions to be combined.}
-
-\item{xlims}{the domain of definition of the distributions in the mixture, and consequently, of the returned mixture density.}
 
 \item{weights}{(optional) the weights of the distributions in the mixture. If it is not give, equal weights are assumed.}
 }
