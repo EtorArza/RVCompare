@@ -59,12 +59,13 @@ res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, 100, returnDa
 
 
 densityesPlot = ggplot() +
+ geom_ribbon(data = res, aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill = "#00BFC4", alpha = 0.25) +
+ scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#F8766D", "#00BFC4")) +
  geom_line(data = res, aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
  geom_line(data = res, aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
- scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("red", "blue")) +
- scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "dotted")) +
+ geom_ribbon(data = res, aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper), fill = "#F8766D", alpha = 0.25) +
+ scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "solid")) +
  xlab('x') +
- ylab('cumulative probability') +
- theme_bw()  # Black and white theme
+ ylab('cumulative probability')
  print(densityesPlot)
 }
