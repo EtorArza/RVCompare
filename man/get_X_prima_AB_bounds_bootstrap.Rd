@@ -4,39 +4,67 @@
 \alias{get_X_prima_AB_bounds_bootstrap}
 \title{Estimate X'_A and X'_B bounds with bootstrap 0.632}
 \usage{
-get_X_prima_AB_bounds_bootstrap(densityX_A, densityX_B, xlims, EPSILON = 0.001)
+get_X_prima_AB_bounds_bootstrap(
+  X_A_observed,
+  X_B_observed,
+  nOfQuantiles,
+  nOfBootstrapSamples = 10000,
+  alpha = 0.2,
+  EPSILON = 1e-20,
+  returnDataframe = FALSE
+)
 }
 \arguments{
-\item{EPSILON}{(optional, default value 1e-20) minimum difference between two values to be considered different.}
-
 \item{X_A_observed}{array of the observed samples (real values) of X_A.}
 
 \item{X_B_observed}{array of the observed samples (real values) of X_B.}
 
+\item{nOfQuantiles}{the number of points in the interval [0,1] in which the density is estimated.}
+
+\item{nOfBootstrapSamples}{(optional, default value 1e6) how many bootsrap samples to average.}
+
 \item{alpha}{(optional, default value 0.2) the error of the confidence interval.}
+
+\item{EPSILON}{(optional, default value 1e-20) minimum difference between two values to be considered different.}
+
+\item{returnDataframe}{(optional, default value FALSE, as it returns a list by default) Wether to return a dataframe or a list.}
 }
 \value{
 Returns a list with the following fields:
 
-- p: the values in the interval (0,1) in which the uniform distributions that define the mixtures X'_A and X'_B are centered.
+- p: values in the interval [0,1] that represent the nOfQuantiles points in which the densities are estimated. Useful for plotting.
 
-"X_prima_A_density_estimation": the density estimation of X_prima_A,
+- X_prima_A_density_estimation: an array with the estimated probability densites of X_prima_A for each point (p[[i]] + p[[i+1]])/2.
 
-"X_prima_A_density_upper": the upper bound of the confidence interval of 1 - alpha of the density estimation of X_prima_A
+- X_prima_A_density_upper: an array with the upper bounds of confidence 1 - alpha of the density estimation of X_prima_A
 
-"X_prima_A_density_lower": the lower bound of the confidence interval of 1 - alpha of the density estimation of X_prima_A
+- X_prima_A_density_lower: an array with the lower bounds of confidence 1 - alpha of the density estimation of X_prima_A
 
-"X_prima_B_density_estimation": the density estimation of X_prima_B,
+- X_prima_B_density_estimation: The same as X_prima_A_density_estimation for X'_B.
 
-"X_prima_B_density_upper": the upper bound of the confidence interval of 1 - alpha of the density estimation of X_prima_B
+- X_prima_B_density_upper: The same as X_prima_A_density_upper for X'_B
 
-"X_prima_B_density_lower": the lower bound of the confidence interval of 1 - alpha of the density estimation of X_prima_B
+- X_prima_B_density_lower: The same as X_prima_A_density_lower for X'_B
+
+- X_prima_A_cumulative_estimation, X_prima_A_cumulative_lower, X_prima_A_cumulative_upper, X_prima_B_cumulative_estimation, X_prima_B_cumulative_lower, X_prima_B_cumulative_upper: the same as the above fields, but it describes the cumulative distribution instead of the density.
 }
 \description{
 Estimate the confidence intervals for the density estimations of X'_A and X'_B using bootstrap.
 As a bonus, in addition to the density, the bounds of the cumulative density are also compared.
 }
 \examples{
+X_A_observed <- c(0,1,1,2,2,3,4)
+X_B_observed <- c(0,1,1,2,3,1,1,5,6)
+res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, 100, returnDataframe=TRUE, nOfBootstrapSamples=1e3)
 
 
+densityesPlot = ggplot() +
+ geom_line(data = res, aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
+ geom_line(data = res, aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
+ scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("red", "blue")) +
+ scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "dotted")) +
+ xlab('x') +
+ ylab('cumulative probability') +
+ theme_bw()  # Black and white theme
+ print(densityesPlot)
 }

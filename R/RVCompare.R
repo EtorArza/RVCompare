@@ -16,11 +16,12 @@ library(pracma)
 #' @param nOfBootstrapSamples (optional, default value 1e6) how many bootsrap samples to average.
 #' @param alpha (optional, default value 0.2) the error of the confidence interval.
 #' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
+#' @param returnDataframe (optional, default value FALSE, as it returns a list by default) Wether to return a dataframe or a list.
 #' @return Returns a list with the following fields:
 #'
 #' - p: values in the interval [0,1] that represent the nOfQuantiles points in which the densities are estimated. Useful for plotting.
 #'
-#' - X_prima_A_density_estimation: an array with the estimated probability densites of X_prima_A for each point in p.
+#' - X_prima_A_density_estimation: an array with the estimated probability densites of X_prima_A for each point (p[[i]] + p[[i+1]])/2.
 #'
 #' - X_prima_A_density_upper: an array with the upper bounds of confidence 1 - alpha of the density estimation of X_prima_A
 #'
@@ -31,15 +32,91 @@ library(pracma)
 #' - X_prima_B_density_upper: The same as X_prima_A_density_upper for X'_B
 #'
 #' - X_prima_B_density_lower: The same as X_prima_A_density_lower for X'_B
+#'
+#' - X_prima_A_cumulative_estimation, X_prima_A_cumulative_lower, X_prima_A_cumulative_upper, X_prima_B_cumulative_estimation, X_prima_B_cumulative_lower, X_prima_B_cumulative_upper: the same as the above fields, but it describes the cumulative distribution instead of the density.
 #' @export
 #' @examples
 ### Example 1 ###
+#' X_A_observed <- c(0,1,1,2,2,3,4)
+#' X_B_observed <- c(0,1,1,2,3,1,1,5,6)
+#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, 100, returnDataframe=TRUE, nOfBootstrapSamples=1e3)
 #'
 #'
-get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuantiles, nOfBootstrapSamples=1e6, alpha=0.2,  EPSILON=1e-20) {
+#' densityesPlot = ggplot() +
+#'  geom_line(data = res, aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
+#'  geom_line(data = res, aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
+#'  scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("red", "blue")) +
+#'  scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "dotted")) +
+#'  xlab('x') +
+#'  ylab('cumulative probability') +
+#'  theme_bw()  # Black and white theme
+#'  print(densityesPlot)
+get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuantiles, nOfBootstrapSamples=1e4, alpha=0.2,  EPSILON=1e-20, returnDataframe=FALSE) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
+  }
+
+  n <- length(X_A_observed)
+  m <- length(X_B_observed)
+
+  nDatapointsWhereDensityEstimated <- nOfQuantiles - 1
+
+  p <- 0:(nDatapointsWhereDensityEstimated-1) / (nDatapointsWhereDensityEstimated - 1) # the size of the intervals is 1 / (nDatapointsWhereDensityEstimated - 1).
+
+  dataA <- matrix(0, nrow = nOfBootstrapSamples, ncol = nDatapointsWhereDensityEstimated)
+  dataB <- matrix(0, nrow = nOfBootstrapSamples, ncol = nDatapointsWhereDensityEstimated)
+
+  pb = txtProgressBar(min = 1, max = nOfBootstrapSamples, initial = 1, style = 3)
+
+  for (i in 1:nOfBootstrapSamples) {
+    setTxtProgressBar(pb,i)
+    bootStrapSampleA <- sample(X_A_observed, size= min(n,m), replace=TRUE)
+    bootStrapSampleB <- sample(X_B_observed, size=min(n,m), replace=TRUE)
+
+    ranksObj <- ranksOfObserved(bootStrapSampleA, bootStrapSampleB, EPSILON)
+
+    X_A_ranks <- sort(ranksObj$X_A_ranks)
+    X_B_ranks <- sort(ranksObj$X_B_ranks)
+    r_max <- ranksObj$r_max
+    j_max <- nDatapointsWhereDensityEstimated-1
+
+    for (j in 0:j_max) {
+      dataA[[i,j+1]] <- helperGet_X_prima_AB_bounds_bootstrap(sortedRanks = X_A_ranks, r_max = r_max, j = j, j_max = j_max)
+      dataB[[i,j+1]] <- helperGet_X_prima_AB_bounds_bootstrap(sortedRanks = X_B_ranks, r_max = r_max, j = j, j_max = j_max)
+    }
+  }
+  res <- list()
+
+  res$p <- p
+
+  quantiles <- apply(dataA, 2, quantile, probs = c(alpha/2, 0.5, 1.0 - alpha/2))
+  res$X_prima_A_density_estimation <- quantiles[2,]
+  res$X_prima_A_density_upper <- quantiles[1,]
+  res$X_prima_A_density_lower<- quantiles[3,]
+
+  res$X_prima_A_cumulative_estimation = cumsum(c(0,head(res$X_prima_A_density_estimation,-1)) / j_max)
+  res$X_prima_A_cumulative_upper = cumsum(c(0,head(res$X_prima_A_density_upper,-1)) / j_max)
+  res$X_prima_A_cumulative_lower = cumsum(c(0,head(res$X_prima_A_density_lower,-1)) / j_max)
+
+
+
+
+  quantiles <- apply(dataB, 2, quantile, probs = c(alpha/2, 0.5, 1.0 - alpha/2))
+  res$X_prima_B_density_estimation <- quantiles[2,]
+  res$X_prima_B_density_upper <- quantiles[1,]
+  res$X_prima_B_density_lower<- quantiles[3,]
+
+  res$X_prima_B_cumulative_estimation = cumsum(c(0,head(res$X_prima_B_density_estimation,-1)) / j_max)
+  res$X_prima_B_cumulative_upper = cumsum(c(0,head(res$X_prima_B_density_upper,-1)) / j_max)
+  res$X_prima_B_cumulative_lower = cumsum(c(0,head(res$X_prima_B_density_lower,-1)) / j_max)
+
+  if (returnDataframe) {
+    df <- data.frame(matrix(unlist(res), nrow=length(res$p), byrow=FALSE))
+    colnames(df) <- names(res)
+    return(df)
+  }else{
+    return(res)
   }
 
 }
@@ -619,5 +696,43 @@ get_X_prima_AB_density <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
 }
 
 
+#' Helper function for get_X_prima_AB_bounds_bootstrap.
+#'
+#' The density corresponding to the position in index j is computed, given the SORTED ranks, and r_max
+#' @param sortedRanks the sorted ranks of either the observed X_A or X_B.
+#' @param r_max The largest rank.
+#' @param j the index that corresponds to the position. j goes from 0 to nDatapointsWhereDensityEstimated-1
+#' @param j_max the largest index that will be used. its value is nDatapointsWhereDensityEstimated-1
+#' @keywords internal
+#' @examples
+#' j_max <- 1000
+#' f <- function(x){helperGet_X_prima_AB_bounds_bootstrap(sortedRanks=c(0,0,0,0,0,0,2,3,4), r_max=4, j=x, j_max=j_max)}
+#' plot(x = 0:j_max / j_max, y = sapply(0:j_max, f), type="l")
+#' plot(x = 0:j_max / j_max, y = cumsum(c(0,head(sapply(0:j_max, f),-1)) / j_max), type="l")
+#' @export
+#' @return the probability density in this point
+helperGet_X_prima_AB_bounds_bootstrap <- function(sortedRanks, r_max, j, j_max) {
+    p_corresponding_to_j <- j / j_max
+
+    biggest_rank_that_has_a_lower_pos_than_j_in_p_terms <- -1
+    for (k in 0:r_max) {
+      if (k / (r_max+1) <= p_corresponding_to_j) {
+        biggest_rank_that_has_a_lower_pos_than_j_in_p_terms <- k
+      }else{
+        break
+      }
+    }
+
+    n_times <- 0
+
+    for (k in 1:length(sortedRanks)) {
+      if (sortedRanks[[k]] == biggest_rank_that_has_a_lower_pos_than_j_in_p_terms) {
+        n_times = n_times + 1
+      }
+    }
+
+    #since the integral needs to be 1, we need to divede the probability n_times/length(sortedRanks) by the interval length (1 / (r_max+1))
+    return(n_times / length(sortedRanks) / (1 / (r_max+1)) )
+}
 
 
