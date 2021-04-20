@@ -45,8 +45,8 @@ library(pracma)
 #' densityesPlot = ggplot() +
 #'  geom_line(data = res, aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
 #'  geom_line(data = res, aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
-#'  scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("red", "blue")) +
-#'  scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "dotted")) +
+#'  scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#F8766D", "#00BFC4")) +
+#'  scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "solid")) +
 #'  xlab('x') +
 #'  ylab('cumulative probability') +
 #'  theme_bw()  # Black and white theme
