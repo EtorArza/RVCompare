@@ -2,7 +2,7 @@
 % Please edit documentation in R/RVCompare.R
 \name{get_X_prima_AB_bounds_bootstrap}
 \alias{get_X_prima_AB_bounds_bootstrap}
-\title{Estimate X'_A and X'_B bounds with bootstrap 0.632}
+\title{Estimate X'_A and X'_B bounds with bootstrap}
 \usage{
 get_X_prima_AB_bounds_bootstrap(
   X_A_observed,
@@ -34,29 +34,28 @@ Returns a list with the following fields:
 
 - p: values in the interval [0,1] that represent the nOfQuantiles points in which the densities are estimated. Useful for plotting.
 
-- X_prima_A_density_estimation: an array with the estimated probability densites of X_prima_A for each point (p[[i]] + p[[i+1]])/2.
+- X_prima_A_cumulative_estimation: an array with the estimated probability densites of X_prima_A for each point (p[[i]] + p[[i+1]])/2.
 
-- X_prima_A_density_upper: an array with the upper bounds of confidence 1 - alpha of the density estimation of X_prima_A
+- X_prima_A_cumulative_upper: an array with the upper bounds of confidence 1 - alpha of the density estimation of X_prima_A
 
-- X_prima_A_density_lower: an array with the lower bounds of confidence 1 - alpha of the density estimation of X_prima_A
+- X_prima_A_cumulative_lower: an array with the lower bounds of confidence 1 - alpha of the density estimation of X_prima_A
 
-- X_prima_B_density_estimation: The same as X_prima_A_density_estimation for X'_B.
+- X_prima_B_cumulative_estimation: The same as X_prima_A_cumulative_estimation for X'_B.
 
-- X_prima_B_density_upper: The same as X_prima_A_density_upper for X'_B
+- X_prima_B_cumulative_upper: The same as X_prima_A_cumulative_upper for X'_B
 
-- X_prima_B_density_lower: The same as X_prima_A_density_lower for X'_B
-
-- X_prima_A_cumulative_estimation, X_prima_A_cumulative_lower, X_prima_A_cumulative_upper, X_prima_B_cumulative_estimation, X_prima_B_cumulative_lower, X_prima_B_cumulative_upper: the same as the above fields, but it describes the cumulative distribution instead of the density.
+- X_prima_B_cumulative_lower: The same as X_prima_A_cumulative_lower for X'_B
 }
 \description{
 Estimate the confidence intervals for the density estimations of X'_A and X'_B using bootstrap.
 As a bonus, in addition to the density, the bounds of the cumulative density are also compared.
 }
 \examples{
+library(ggplot2)
+
 X_A_observed <- c(0,1,1,2,2,3,4)
 X_B_observed <- c(0,1,1,2,3,1,1,5,6)
-res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, 100, returnDataframe=TRUE, nOfBootstrapSamples=1e3)
-
+res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, 100, returnDataframe=TRUE, nOfBootstrapSamples=1e2)
 
 densityesPlot = ggplot() +
  geom_ribbon(data = res, aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill = "#00BFC4", alpha = 0.25) +

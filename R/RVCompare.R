@@ -5,7 +5,7 @@ library(pracma)
 ################## Main functions ##################
 
 
-#' Estimate X'_A and X'_B bounds with bootstrap 0.632
+#' Estimate X'_A and X'_B bounds with bootstrap
 #'
 #' Estimate the confidence intervals for the density estimations of X'_A and X'_B using bootstrap.
 #' As a bonus, in addition to the density, the bounds of the cumulative density are also compared.
@@ -21,26 +21,26 @@ library(pracma)
 #'
 #' - p: values in the interval [0,1] that represent the nOfQuantiles points in which the densities are estimated. Useful for plotting.
 #'
-#' - X_prima_A_density_estimation: an array with the estimated probability densites of X_prima_A for each point (p[[i]] + p[[i+1]])/2.
+#' - X_prima_A_cumulative_estimation: an array with the estimated probability densites of X_prima_A for each point (p[[i]] + p[[i+1]])/2.
 #'
-#' - X_prima_A_density_upper: an array with the upper bounds of confidence 1 - alpha of the density estimation of X_prima_A
+#' - X_prima_A_cumulative_upper: an array with the upper bounds of confidence 1 - alpha of the density estimation of X_prima_A
 #'
-#' - X_prima_A_density_lower: an array with the lower bounds of confidence 1 - alpha of the density estimation of X_prima_A
+#' - X_prima_A_cumulative_lower: an array with the lower bounds of confidence 1 - alpha of the density estimation of X_prima_A
 #'
-#' - X_prima_B_density_estimation: The same as X_prima_A_density_estimation for X'_B.
+#' - X_prima_B_cumulative_estimation: The same as X_prima_A_cumulative_estimation for X'_B.
 #'
-#' - X_prima_B_density_upper: The same as X_prima_A_density_upper for X'_B
+#' - X_prima_B_cumulative_upper: The same as X_prima_A_cumulative_upper for X'_B
 #'
-#' - X_prima_B_density_lower: The same as X_prima_A_density_lower for X'_B
+#' - X_prima_B_cumulative_lower: The same as X_prima_A_cumulative_lower for X'_B
 #'
-#' - X_prima_A_cumulative_estimation, X_prima_A_cumulative_lower, X_prima_A_cumulative_upper, X_prima_B_cumulative_estimation, X_prima_B_cumulative_lower, X_prima_B_cumulative_upper: the same as the above fields, but it describes the cumulative distribution instead of the density.
 #' @export
 #' @examples
 ### Example 1 ###
+#' library(ggplot2)
+#'
 #' X_A_observed <- c(0,1,1,2,2,3,4)
 #' X_B_observed <- c(0,1,1,2,3,1,1,5,6)
-#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, 100, returnDataframe=TRUE, nOfBootstrapSamples=1e3)
-#'
+#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, 100, returnDataframe=TRUE, nOfBootstrapSamples=1e2)
 #'
 #' densityesPlot = ggplot() +
 #'  geom_ribbon(data = res, aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill = "#00BFC4", alpha = 0.25) +
@@ -62,8 +62,8 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuant
   m <- length(X_B_observed)
 
   nDatapointsWhereDensityEstimated <- nOfQuantiles - 1
-
-  p <- 0:(nDatapointsWhereDensityEstimated-1) / (nDatapointsWhereDensityEstimated - 1) # the size of the intervals is 1 / (nDatapointsWhereDensityEstimated - 1).
+  j_max <- nDatapointsWhereDensityEstimated-1
+  p <- 0:j_max / j_max # the size of the intervals is 1 / j_max.
 
   dataA <- matrix(0, nrow = nOfBootstrapSamples, ncol = nDatapointsWhereDensityEstimated)
   dataB <- matrix(0, nrow = nOfBootstrapSamples, ncol = nDatapointsWhereDensityEstimated)
@@ -80,37 +80,38 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuant
     X_A_ranks <- sort(ranksObj$X_A_ranks)
     X_B_ranks <- sort(ranksObj$X_B_ranks)
     r_max <- ranksObj$r_max
-    j_max <- nDatapointsWhereDensityEstimated-1
 
     for (j in 0:j_max) {
-      dataA[[i,j+1]] <- helperGet_X_prima_AB_bounds_bootstrap(sortedRanks = X_A_ranks, r_max = r_max, j = j, j_max = j_max)
-      dataB[[i,j+1]] <- helperGet_X_prima_AB_bounds_bootstrap(sortedRanks = X_B_ranks, r_max = r_max, j = j, j_max = j_max)
+      dataA[i,] <- helperGet_X_prima_AB_bounds_bootstrap_for_every_j(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max)
+      dataB[i,] <- helperGet_X_prima_AB_bounds_bootstrap_for_every_j(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max)
     }
   }
   res <- list()
 
   res$p <- p
 
+  dataA <- t(apply(dataA, 1, helperTrapezoidRule))
+  dataB <- t(apply(dataB, 1, helperTrapezoidRule))
+
   quantiles <- apply(dataA, 2, quantile, probs = c(alpha/2, 0.5, 1.0 - alpha/2))
-  res$X_prima_A_density_estimation <- quantiles[2,]
-  res$X_prima_A_density_upper <- quantiles[1,]
-  res$X_prima_A_density_lower<- quantiles[3,]
 
-  res$X_prima_A_cumulative_estimation = cumsum(c(0,head(res$X_prima_A_density_estimation,-1)) / j_max)
-  res$X_prima_A_cumulative_upper = cumsum(c(0,head(res$X_prima_A_density_upper,-1)) / j_max)
-  res$X_prima_A_cumulative_lower = cumsum(c(0,head(res$X_prima_A_density_lower,-1)) / j_max)
+  res$X_prima_A_cumulative_estimation <- quantiles[2,]
+  res$X_prima_A_cumulative_lower<- quantiles[1,]
+  res$X_prima_A_cumulative_upper <- quantiles[3,]
 
+  print(class(res$X_prima_A_cumulative_estimation))
+  print(res$X_prima_A_cumulative_estimation)
 
 
 
   quantiles <- apply(dataB, 2, quantile, probs = c(alpha/2, 0.5, 1.0 - alpha/2))
-  res$X_prima_B_density_estimation <- quantiles[2,]
-  res$X_prima_B_density_upper <- quantiles[1,]
-  res$X_prima_B_density_lower<- quantiles[3,]
 
-  res$X_prima_B_cumulative_estimation = cumsum(c(0,head(res$X_prima_B_density_estimation,-1)) / j_max)
-  res$X_prima_B_cumulative_upper = cumsum(c(0,head(res$X_prima_B_density_upper,-1)) / j_max)
-  res$X_prima_B_cumulative_lower = cumsum(c(0,head(res$X_prima_B_density_lower,-1)) / j_max)
+  res$X_prima_B_cumulative_estimation <- quantiles[2,]
+  res$X_prima_B_cumulative_lower<- quantiles[1,]
+  res$X_prima_B_cumulative_upper <- quantiles[3,]
+
+
+
 
   if (returnDataframe) {
     df <- data.frame(matrix(unlist(res), nrow=length(res$p), byrow=FALSE))
@@ -697,22 +698,69 @@ get_X_prima_AB_density <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
 }
 
 
+
+
+#' Helper function to compute the integrals in each interval.
+#'
+#' Computes a vector in which each index i is the integral in the interval (0, p[[i]])
+#' of the function described by the densityVec
+#' Uses the trapezoidal rule # https://en.wikipedia.org/wiki/Trapezoidal_rule
+#' to integrate the values in the interval [0,1]. The x corexponding to the
+#' values (the f(x)) are assumed to be equidistantly distributed in the interval,
+#' where the x corresponding to densitiesVec[[1]] is located in 0.0 andthe x
+#' corresponding to densitiesVec[[length(densitiesVec)]] is located in 1.0
+#'
+#' @param densitiesVec the vector of values to be integrated
+#' @keywords internal
+#' @return a vector in which each index i is the integral in the interval
+#' (0, p[[i]]). Consequently, the first element in the vector returned
+#' will be 0, since p[[1]] = 0 does not exist.
+#' @export
+#' @examples
+#' ### Example 1 ###
+helperTrapezoidRule <- function(densitiesVec) {
+  res <- array(0, dim=length(densitiesVec))
+  for (i in 2:length(densitiesVec)) {
+    res[[i]] = (1 / (length(densitiesVec)-1)) * (densitiesVec[[i-1]] + densitiesVec[[i]]) / 2
+  }
+  return(cumsum(res))
+}
+
+
+
+
 #' Helper function for get_X_prima_AB_bounds_bootstrap.
 #'
 #' The density corresponding to the position in index j is computed, given the SORTED ranks, and r_max
 #' @param sortedRanks the sorted ranks of either the observed X_A or X_B.
 #' @param r_max The largest rank.
-#' @param j the index that corresponds to the position. j goes from 0 to nDatapointsWhereDensityEstimated-1
 #' @param j_max the largest index that will be used. its value is nDatapointsWhereDensityEstimated-1
 #' @keywords internal
 #' @examples
-#' j_max <- 1000
-#' f <- function(x){helperGet_X_prima_AB_bounds_bootstrap(sortedRanks=c(0,0,0,0,0,0,2,3,4), r_max=4, j=x, j_max=j_max)}
-#' plot(x = 0:j_max / j_max, y = sapply(0:j_max, f), type="l")
-#' plot(x = 0:j_max / j_max, y = cumsum(c(0,head(sapply(0:j_max, f),-1)) / j_max), type="l")
+#' ### Example 1 ###
+#' j_max <- 12
+#' r_max <- 6
+#' sortedRanks <- c(0,0,0,0,1,1,1,1,1,1,1,3,4)
+#' densities <- helperGet_X_prima_AB_bounds_bootstrap_for_every_j(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#' plot(x = 0:j_max / j_max, y = densities, type="l")
+#' print(tail(helperTrapezoidRule(densities)))
+#' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
+#'
+#' ### Example 2 ###
+#' j_max <- 12
+#' r_max <- 19
+#' sortedRanks <- c(0,0,1,1,3,5,6,18,19)
+#' densities <- helperGet_X_prima_AB_bounds_bootstrap_for_every_j(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#' plot(x = 0:j_max / j_max, y = densities, type="l")
+#' print(tail(helperTrapezoidRule(densities)))
+#' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 #' @export
 #' @return the probability density in this point
-helperGet_X_prima_AB_bounds_bootstrap <- function(sortedRanks, r_max, j, j_max) {
+helperGet_X_prima_AB_bounds_bootstrap_for_every_j <- function(sortedRanks, r_max, j_max) {
+  j_vec = array(0, dim=j_max+1)
+
+  # j goes from 0 to j_max
+  for (j in 0:j_max) {
     p_corresponding_to_j <- j / j_max
 
     biggest_rank_that_has_a_lower_pos_than_j_in_p_terms <- -1
@@ -731,9 +779,11 @@ helperGet_X_prima_AB_bounds_bootstrap <- function(sortedRanks, r_max, j, j_max) 
         n_times = n_times + 1
       }
     }
+    j_vec[[j+1]] <- n_times
+  }
 
-    #since the integral needs to be 1, we need to divede the probability n_times/length(sortedRanks) by the interval length (1 / (r_max+1))
-    return(n_times / length(sortedRanks) / (1 / (r_max+1)) )
+    #since the integral needs to be 1, we need that sum_{j=0:(j_max-1)}(density in p_j * interval_length) = 1, where p_j = p[[j+1]].
+    return(j_vec / tail(helperTrapezoidRule(j_vec),1))
 }
 
 
