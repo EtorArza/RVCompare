@@ -718,13 +718,13 @@ get_X_prima_AB_density <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
 #' @export
 #' @examples
 #' ### Example 1 ###
+#' helperTrapezoidRule(c(1,2,3,3,3,4,5,9,3,0,1))
+#' # 0.00 0.15 0.40 0.70 1.00 1.35 1.80 2.50 3.10 3.25 3.30
 helperTrapezoidRule <- function(densitiesVec) {
-  res <- array(0, dim=length(densitiesVec))
-  for (i in 2:length(densitiesVec)) {
-    res[[i]] = (1 / (length(densitiesVec)-1)) * (densitiesVec[[i-1]] + densitiesVec[[i]]) / 2
-  }
-  return(cumsum(res))
+  res <- c(0, head(densitiesVec,-1) + tail(densitiesVec,-1)) / 2
+  return(  cumsum(res * (1 / (length(densitiesVec)-1)))  )
 }
+
 
 
 
