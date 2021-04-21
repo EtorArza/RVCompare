@@ -7,25 +7,30 @@ library(pracma)
 
 #' Estimate X'_A and X'_B bounds with bootstrap
 #'
-#' Estimate the confidence intervals for the density estimations of X'_A and X'_B using bootstrap.
+#' Estimate the confidence intervals for the cumulative distributions of X'_A and X'_B using bootstrap.
+#' Much slower than the Dvoretzky–Kiefer–Wolfowitz approach-
 #' As a bonus, in addition to the density, the bounds of the cumulative density are also compared.
 #'
-#' @param X_A_observed array of the observed samples (real values) of X_A.
+#' @param X_A_observed array of the observed samples (real values) of X_A. Computation time increases with min(length(X_A_observed), length(X_B_observed))
 #' @param X_B_observed array of the observed samples (real values) of X_B.
-#' @param nOfQuantiles the number of points in the interval [0,1] in which the density is estimated.
-#' @param nOfBootstrapSamples (optional, default value 1e6) how many bootsrap samples to average.
-#' @param alpha (optional, default value 0.2) the error of the confidence interval.
+#' @param nOfQuantiles (optional, default 100) the number of points in the interval [0,1] in which the cumulative density is estimated. Increases computation time.
+#' @param alpha (optional, default value 0.2) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
 #' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
-#' @param returnDataframe (optional, default value FALSE, as it returns a list by default) Wether to return a dataframe or a list.
+#' @param nOfBootstrapSamples (optional, default value 1e3) how many bootsrap samples to average. Increases computation time.
+#' @param ignoreUniqueValuesCheck (optional, default value FALSE)
 #' @return Returns a list with the following fields:
 #'
 #' - p: values in the interval [0,1] that represent the nOfQuantiles points in which the densities are estimated. Useful for plotting.
 #'
-#' - X_prima_A_cumulative_estimation: an array with the estimated probability densites of X_prima_A for each point (p[[i]] + p[[i+1]])/2.
+#' - X_prima_A_cumulative_empirical: an array with the empirical cumulative diustribution function of X_prima_A from 0 to p[[i]].
 #'
-#' - X_prima_A_cumulative_upper: an array with the upper bounds of confidence 1 - alpha of the density estimation of X_prima_A
+#' - X_prima_A_cumulative_estimation: an array with the estimated cumulative diustribution function of X_prima_A from 0 to p[[i]].
 #'
-#' - X_prima_A_cumulative_lower: an array with the lower bounds of confidence 1 - alpha of the density estimation of X_prima_A
+#' - X_prima_A_cumulative_upper: an array with the upper bounds of confidence 1 - alpha of the cumulative density of X_prima_A
+#'
+#' - X_prima_A_cumulative_lower: an array with the lower bounds of confidence 1 - alpha of the cumulative density of X_prima_A
+#'
+#' - X_prima_B_cumulative_empirical: The same as X_prima_A_cumulative_empirical for X'_B.
 #'
 #' - X_prima_B_cumulative_estimation: The same as X_prima_A_cumulative_estimation for X'_B.
 #'
@@ -35,28 +40,41 @@ library(pracma)
 #'
 #' @export
 #' @examples
-### Example 1 ###
+#' ### Example 1 ###
 #' library(ggplot2)
 #'
-#' X_A_observed <- c(0,1,1,2,2,3,4)
-#' X_B_observed <- c(0,1,1,2,3,1,1,5,6)
-#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, 100, returnDataframe=TRUE, nOfBootstrapSamples=1e2)
+#' X_A_observed <- rnorm(300,mean = 1, sd = 1)
+#' X_B_observed <- rnorm(300,mean = 1.3, sd = 0.5)
+#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 #'
-#' densityesPlot = ggplot() +
-#'  geom_ribbon(data = res, aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill = "#00BFC4", alpha = 0.25) +
-#'  scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#F8766D", "#00BFC4")) +
-#'  geom_line(data = res, aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
-#'  geom_line(data = res, aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
-#'  geom_ribbon(data = res, aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper), fill = "#F8766D", alpha = 0.25) +
-#'  scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "solid")) +
-#'  xlab('x') +
-#'  ylab('cumulative probability')
-#'  print(densityesPlot)
-get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuantiles, nOfBootstrapSamples=1e4, alpha=0.2,  EPSILON=1e-20, returnDataframe=FALSE) {
+#' densityesPlot = plot_X_prima_AB(res)
+#' print(densityesPlot)
+get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuantiles=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreUniqueValuesCheck=FALSE) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
   }
+
+  if (alpha > 1 || alpha <= 0.0) {
+    print("ERROR: alpha must be defined in the interval (0,1). It represents the error of the CI.")
+  }
+
+  if(!xHasEnoughDiffValues(X_A_observed, EPSILON, 20)) {
+    print("ERROR: X_A_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
+    print("Try reducing EPSILON or obtaining additional samples.")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
+  }
+
+  if(!xHasEnoughDiffValues(X_B_observed, EPSILON, 20)) {
+    print("ERROR: X_B_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
+    print("Try reducing EPSILON or obtaining additional samples.")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
+  }
+
+
+
+
+
 
   n <- length(X_A_observed)
   m <- length(X_B_observed)
@@ -81,12 +99,18 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuant
     X_B_ranks <- sort(ranksObj$X_B_ranks)
     r_max <- ranksObj$r_max
 
-    for (j in 0:j_max) {
-      dataA[i,] <- helperGet_X_prima_AB_bounds_bootstrap_for_every_j(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max)
-      dataB[i,] <- helperGet_X_prima_AB_bounds_bootstrap_for_every_j(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max)
-    }
+    dataA[i,] <- helper_from_ranks_to_integrated_values(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max)
+    dataB[i,] <- helper_from_ranks_to_integrated_values(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max)
   }
+
+
+  resEmpirical <- getEmpiricalCumulativeDistributions(X_A_observed, X_B_observed, nOfQuantiles, EPSILON)
+
+
   res <- list()
+
+  res$X_prima_A_cumulative_empirical <- resEmpirical$X_prima_A_cumulative_empirical
+  res$X_prima_B_cumulative_empirical <- resEmpirical$X_prima_B_cumulative_empirical
 
   res$p <- p
 
@@ -95,12 +119,12 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuant
 
   quantiles <- apply(dataA, 2, quantile, probs = c(alpha/2, 0.5, 1.0 - alpha/2))
 
+
   res$X_prima_A_cumulative_estimation <- quantiles[2,]
   res$X_prima_A_cumulative_lower<- quantiles[1,]
   res$X_prima_A_cumulative_upper <- quantiles[3,]
 
-  print(class(res$X_prima_A_cumulative_estimation))
-  print(res$X_prima_A_cumulative_estimation)
+
 
 
 
@@ -111,17 +135,203 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuant
   res$X_prima_B_cumulative_upper <- quantiles[3,]
 
 
+  return(res)
 
 
-  if (returnDataframe) {
-    df <- data.frame(matrix(unlist(res), nrow=length(res$p), byrow=FALSE))
-    colnames(df) <- names(res)
-    return(df)
-  }else{
-    return(res)
-  }
 
 }
+
+
+
+
+
+
+#' Estimate X'_A and X'_B bounds with Dvoretzky–Kiefer–Wolfowitz
+#'
+#'
+#' Estimate the confidence intervals for the cumulative distributions of X'_A and X'_B with Dvoretzky–Kiefer–Wolfowitz.
+#'
+#' @param X_A_observed array of the observed samples (real values) of X_A.
+#' @param X_B_observed array of the observed samples (real values) of X_B.
+#' @param nOfQuantiles (optional, default 1000) the number of points in the interval [0,1] in which the density is estimated.
+#' @param alpha (optional, default value 0.2) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
+#' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
+#' @return Returns a list with the following fields:
+#'
+#' - p: values in the interval [0,1] that represent the nOfQuantiles points in which the densities are estimated. Useful for plotting.
+#'
+#' - X_prima_A_cumulative_empirical: an array with the empirical cumulative diustribution function of X_prima_A from 0 to p[[i]].
+#'
+#' - X_prima_A_cumulative_upper: an array with the upper bounds of confidence 1 - alpha of the cumulative density of X_prima_A
+#'
+#' - X_prima_A_cumulative_lower: an array with the lower bounds of confidence 1 - alpha of the cumulative density of X_prima_A
+#'
+#' - X_prima_B_cumulative_empirical: The same as X_prima_A_cumulative_empirical for X'_B.
+#'
+#' - X_prima_B_cumulative_upper: The same as X_prima_A_cumulative_upper for X'_B
+#'
+#' - X_prima_B_cumulative_lower: The same as X_prima_A_cumulative_lower for X'_B
+#'
+#' @export
+#' @examples
+#' ### Example 1 ###
+#' library(ggplot2)
+#'
+#' X_A_observed <- rnorm(30,mean = 1, sd = 1)
+#' X_B_observed <- rnorm(30,mean = 1.3, sd = 0.5)
+#' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
+#'
+#' densityesPlot = plot_X_prima_AB(res)
+#' print(densityesPlot)
+get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfQuantiles=1000, alpha=0.2,  EPSILON=1e-20) {
+
+  if (EPSILON > 0.1 || EPSILON <= 0.0) {
+    print("ERROR: EPSILON must be in the interval (0,0.1).")
+  }
+
+  if (alpha > 1 || alpha <= 0.0) {
+    print("ERROR: alpha must be defined in the interval (0,1). It represents the error of the CI.")
+  }
+
+
+  if(!xHasEnoughDiffValues(X_A_observed, EPSILON, 20)) {
+    print("ERROR: X_A_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
+    print("Try reducing EPSILON or obtaining additional samples.")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
+  }
+
+  if(!xHasEnoughDiffValues(X_B_observed, EPSILON, 20)) {
+    print("ERROR: X_B_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
+    print("Try reducing EPSILON or obtaining additional samples.")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
+  }
+
+
+
+  n <- length(X_A_observed)
+  bandSizeA <- sqrt( log(2 / alpha) / (2*n) )
+  m <- length(X_B_observed)
+  bandSizeB <- sqrt( log(2 / alpha) / (2*m) )
+
+  nDatapointsWhereDensityEstimated <- nOfQuantiles - 1
+  j_max <- nDatapointsWhereDensityEstimated-1
+  p <- 0:j_max / j_max # the size of the intervals is 1 / j_max.
+
+
+  ranksObj <- ranksOfObserved(X_A_observed, X_B_observed, EPSILON)
+
+  X_A_ranks <- sort(ranksObj$X_A_ranks)
+  X_B_ranks <- sort(ranksObj$X_B_ranks)
+  r_max <- ranksObj$r_max
+
+
+  res<-getEmpiricalCumulativeDistributions(X_A_observed, X_B_observed, nOfQuantiles, EPSILON)
+
+
+  empiricalA <- res$X_prima_A_cumulative_empirical
+  empiricalB <- res$X_prima_B_cumulative_empirical
+
+  res$p <- p
+
+
+  clip_to_0_1_interval <- function(y) { sapply(y, function(x) min(1,max(0,x))) }
+
+
+
+
+
+  res$X_prima_A_cumulative_lower<- clip_to_0_1_interval(empiricalA + bandSizeA)
+  res$X_prima_A_cumulative_upper <- clip_to_0_1_interval(empiricalA - bandSizeA)
+
+
+  res$X_prima_B_cumulative_lower<- clip_to_0_1_interval(empiricalB + bandSizeB)
+  res$X_prima_B_cumulative_upper <- clip_to_0_1_interval(empiricalB - bandSizeB)
+
+
+  return(res)
+
+
+}
+
+
+
+
+#' Plot the estimated bounds
+#'
+#' retunrs a ggplot2 with the estimated bounds
+#'
+#'
+#' @param estimated_X_prima_AB_bounds the bounds estimated with \code{\link{get_X_prima_AB_bounds_bootstrap}} or \code{\link{get_X_prima_AB_bounds_DKW}}.
+#' @return the ggplot figure object.
+#' @export
+#' @examples
+#' ### Example 1 ###
+#' library(ggplot2)
+#'
+#' X_A_observed <- rnorm(300,mean = 1, sd = 1)
+#' X_B_observed <- rnorm(300,mean = 1.3, sd = 0.5)
+#' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
+#' densityesPlot = plot_X_prima_AB(res)
+#' print(densityesPlot)
+plot_X_prima_AB <- function(estimated_X_prima_AB_bounds) {
+  df <- data.frame(matrix(unlist(estimated_X_prima_AB_bounds), nrow=length(estimated_X_prima_AB_bounds$p), byrow=FALSE))
+  colnames(df) <- names(estimated_X_prima_AB_bounds)
+
+
+  resPlot = ggplot() +
+   geom_ribbon(data = df, aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill = "#00BFC4", alpha = 0.15) +
+   geom_ribbon(data = df, aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper), fill = "#F8766D", alpha = 0.15) +
+   geom_line(data = df, aes(x=p, y=X_prima_A_cumulative_empirical, colour = "X'_A", linetype="X'_A")) +
+   geom_line(data = df, aes(x=p, y=X_prima_B_cumulative_empirical, colour = "X'_B",  linetype ="X'_B")) +
+   geom_line(data = df, aes(x=p, y=X_prima_A_cumulative_lower, colour = "X'_A", linetype="X'_A")) +
+   geom_line(data = df, aes(x=p, y=X_prima_A_cumulative_upper, colour = "X'_A", linetype="X'_A")) +
+   geom_line(data = df, aes(x=p, y=X_prima_B_cumulative_lower, colour = "X'_B", linetype="X'_B")) +
+   geom_line(data = df, aes(x=p, y=X_prima_B_cumulative_upper, colour = "X'_B", linetype="X'_B")) +
+   scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#F8766D", "#00BFC4")) +
+   scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "solid")) +
+   xlab('x') +
+   ylab('cumulative probability')
+
+  return(resPlot)
+}
+
+
+
+#' Get the empirical distribution from samples.
+#'
+#' Given the observed sampels of X_A (or X_B) returns the empirical cumulative distribution
+#' function of X'_A (or X'_B)
+#'
+#'
+#' @param X_A_observed array of the observed samples (real values) of X_A.
+#' @param X_B_observed array of the observed samples (real values) of X_B.
+#' @param nOfQuantiles the number of points in the interval [0,1] in which the cumulative density is estimated + 2.
+#' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
+#' @return a list with two fields: the empirical distributions of X'A and X'B.
+#' @export
+#' @examples
+#' ### Example 1 ###
+getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfQuantiles, EPSILON) {
+
+  print("computing empirical")
+  j_max <- nOfQuantiles -2
+  ranksObj <- ranksOfObserved(X_A_observed, X_B_observed, EPSILON)
+  X_A_ranks <- sort(ranksObj$X_A_ranks)
+  X_B_ranks <- sort(ranksObj$X_B_ranks)
+  r_max <- ranksObj$r_max
+
+  res <- list()
+  res$X_prima_A_cumulative_empirical <- helperTrapezoidRule(helper_from_ranks_to_integrated_values(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max))
+  res$X_prima_B_cumulative_empirical <- helperTrapezoidRule(helper_from_ranks_to_integrated_values(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max))
+  return(res)
+}
+
+
+
+
+
+
+
 
 
 
@@ -390,6 +600,36 @@ isFunctionDensity <- function(f, xlims, tol=1e-3) {
   return(TRUE)
 }
 
+
+#' Check for enough unique values.
+#'
+#' This function checks if there are at least minRequiredDiffValues unique
+#' values in the introduced vector.
+#'
+#'
+#'
+#' @param X the array with the values.
+#' @param EPSILON when will two values be considered different.
+#' @param minRequiredDiffValues the minimum number of different values required to return TRUE.
+#' @return Returns TRUE if the values are OK. FALSE, if there are not enough unique values.
+#' @export
+#' @examples
+#'
+#'
+xHasEnoughDiffValues <- function(X, EPSILON, minRequiredDiffValues) {
+  sortedX <- sort(X)
+
+  nDiff <- 0
+  for (i in 1:(length(sortedX)-1)) {
+    if( abs(sortedX[[i]] - sortedX[[i+1]]) > EPSILON )
+    {
+      nDiff = nDiff + 1
+    }
+  }
+
+  return( nDiff >= minRequiredDiffValues)
+
+}
 
 
 
@@ -741,8 +981,9 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' j_max <- 12
 #' r_max <- 6
 #' sortedRanks <- c(0,0,0,0,1,1,1,1,1,1,1,3,4)
-#' densities <- helperGet_X_prima_AB_bounds_bootstrap_for_every_j(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#' densities <- helper_from_ranks_to_integrated_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
+#' # 0.9347826 0.9782609 1.0000000 1.0000000 1.0000000 1.0000000
 #' print(tail(helperTrapezoidRule(densities)))
 #' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 #'
@@ -750,40 +991,72 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' j_max <- 12
 #' r_max <- 19
 #' sortedRanks <- c(0,0,1,1,3,5,6,18,19)
-#' densities <- helperGet_X_prima_AB_bounds_bootstrap_for_every_j(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#' densities <- helper_from_ranks_to_integrated_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
+#' # 0.8000000 0.8000000 0.8000000 0.8000000 0.8666667 1.0000000
+#' print(tail(helperTrapezoidRule(densities)))
+#' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
+#'
+#' ### Example 3 ###
+#' j_max <- 12
+#' r_max <- 8
+#' sortedRanks <- c(1,1,3,5,6)
+#' densities <- helper_from_ranks_to_integrated_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#' plot(x = 0:j_max / j_max, y = densities, type="l")
+#' # 0.6428571 0.7857143 0.9285714 1.0000000 1.0000000 1.0000000
 #' print(tail(helperTrapezoidRule(densities)))
 #' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 #' @export
 #' @return the probability density in this point
-helperGet_X_prima_AB_bounds_bootstrap_for_every_j <- function(sortedRanks, r_max, j_max) {
+helper_from_ranks_to_integrated_values <- function(sortedRanks, r_max, j_max) {
   j_vec = array(0, dim=j_max+1)
 
+  last_biggest_index <- 0
+  n_times_last <- 0
+  last_k_index <- 1
   # j goes from 0 to j_max
   for (j in 0:j_max) {
     p_corresponding_to_j <- j / j_max
 
     biggest_rank_that_has_a_lower_pos_than_j_in_p_terms <- -1
-    for (k in 0:r_max) {
+    k_was_updated <- FALSE
+    for (k in last_biggest_index:r_max) {
       if (k / (r_max+1) <= p_corresponding_to_j) {
         biggest_rank_that_has_a_lower_pos_than_j_in_p_terms <- k
+        k_was_updated <- TRUE
       }else{
+        last_biggest_index <- biggest_rank_that_has_a_lower_pos_than_j_in_p_terms
         break
       }
     }
 
     n_times <- 0
 
-    for (k in 1:length(sortedRanks)) {
-      if (sortedRanks[[k]] == biggest_rank_that_has_a_lower_pos_than_j_in_p_terms) {
-        n_times = n_times + 1
+    if (!k_was_updated) {
+      n_times <- n_times_last
+    }else{
+      first_k_index_not_found <- TRUE
+      for (k_index in last_k_index:length(sortedRanks)) {
+        if (sortedRanks[[k_index]] == biggest_rank_that_has_a_lower_pos_than_j_in_p_terms) {
+          if(first_k_index_not_found)
+          {
+            last_k_index <- k_index
+            first_k_index_not_found <- FALSE
+          }
+          n_times = n_times + 1
+        }else if(!first_k_index_not_found){
+          break
+        }
       }
     }
     j_vec[[j+1]] <- n_times
+    n_times_last <- n_times
   }
 
-    #since the integral needs to be 1, we need that sum_{j=0:(j_max-1)}(density in p_j * interval_length) = 1, where p_j = p[[j+1]].
-    return(j_vec / tail(helperTrapezoidRule(j_vec),1))
+  #since the integral needs to be 1, we need that sum_{j=0:(j_max-1)}(density in p_j * interval_length) = 1, where p_j = p[[j+1]].
+  return(j_vec / tail(helperTrapezoidRule(j_vec),1))
 }
+
+
 
 

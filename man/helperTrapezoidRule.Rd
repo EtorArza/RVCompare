@@ -25,5 +25,7 @@ corresponding to densitiesVec[[length(densitiesVec)]] is located in 1.0
 }
 \examples{
 ### Example 1 ###
+helperTrapezoidRule(c(1,2,3,3,3,4,5,9,3,0,1))
+# 0.00 0.15 0.40 0.70 1.00 1.35 1.80 2.50 3.10 3.25 3.30
 }
 \keyword{internal}
