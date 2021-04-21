@@ -22,6 +22,6 @@ library(ggplot2)
 X_A_observed <- rnorm(300,mean = 1, sd = 1)
 X_B_observed <- rnorm(300,mean = 1.3, sd = 0.5)
 res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
-densityesPlot = plot_X_prima_AB(res)
-print(densityesPlot)
+densitiesPlot = plot_X_prima_AB(res)
+print(densitiesPlot)
 }

@@ -7,7 +7,7 @@
 getEmpiricalCumulativeDistributions(
   X_A_observed,
   X_B_observed,
-  nOfQuantiles,
+  nOfEstimationPoints,
   EPSILON
 )
 }
@@ -16,7 +16,7 @@ getEmpiricalCumulativeDistributions(
 
 \item{X_B_observed}{array of the observed samples (real values) of X_B.}
 
-\item{nOfQuantiles}{the number of points in the interval [0,1] in which the cumulative density is estimated + 2.}
+\item{nOfEstimationPoints}{the number of points in the interval [0,1] in which the cumulative density is estimated + 2.}
 
 \item{EPSILON}{(optional, default value 1e-20) minimum difference between two values to be considered different.}
 }

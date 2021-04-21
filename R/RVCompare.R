@@ -40,15 +40,62 @@ library(pracma)
 #'
 #' @export
 #' @examples
-#' ### Example 1 ###
 #' library(ggplot2)
+#' ### Example 1 ###
+#' X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,0.11,2.0,0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,0.316,0.1523,0.1297,0.1123,0.139572,0.1937523)
+#' X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,0.12363,0.132451,0.59217,0.157129,0.13528)
+#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
+#' fig1 = plot_X_prima_AB(res)
+#' print(fig1)
 #'
+#' ### Example 2 ###
+#' # Comparing the estimations with the actual distributions for two normal distributions.
+#' ###################################
+#' ## sample size = 30 ##############
+#' ###################################
+#' X_A_observed <- rnorm(30,mean = 1, sd = 1)
+#' X_B_observed <- rnorm(30,mean = 1.3, sd = 0.5)
+#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
+#'
+#' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
+#' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
+#' actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample, X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
+#'
+#'
+#' actualDistributions$X_prima_A_cumulative_empirical <- lm(X_prima_A_cumulative_empirical ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#' actualDistributions$X_prima_B_cumulative_empirical <- lm(X_prima_B_cumulative_empirical ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#'
+#' fig = plot_X_prima_AB(res) +
+#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_A_cumulative_empirical, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_B_cumulative_empirical, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),  values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"), values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#' ggtitle("30 samples used in the estimation")
+#' print(fig)
+#'
+#' ###################################
+#' ## sample size = 300 ##############
+#' ###################################
 #' X_A_observed <- rnorm(300,mean = 1, sd = 1)
 #' X_B_observed <- rnorm(300,mean = 1.3, sd = 0.5)
 #' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 #'
-#' densityesPlot = plot_X_prima_AB(res)
-#' print(densityesPlot)
+#' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
+#' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
+#' actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample, X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
+#'
+#'
+#' actualDistributions$X_prima_A_cumulative_empirical <- lm(X_prima_A_cumulative_empirical ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#' actualDistributions$X_prima_B_cumulative_empirical <- lm(X_prima_B_cumulative_empirical ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#'
+#' fig = plot_X_prima_AB(res) +
+#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_A_cumulative_empirical, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_B_cumulative_empirical, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),  values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"), values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid")) +
+#' ggtitle("300 samples used in the estimation")
+#' print(fig)
+#'
 get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreUniqueValuesCheck=FALSE) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
@@ -174,15 +221,62 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #'
 #' @export
 #' @examples
-#' ### Example 1 ###
 #' library(ggplot2)
+#' ### Example 1 ###
+#' X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,0.11,2.0,0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,0.316)
+#' X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13)
+#' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
+#' fig1 = plot_X_prima_AB(res)
+#' print(fig1)
 #'
+#' ### Example 2 ###
+#' # Comparing the estimations with the actual distributions for two normal distributions.
+#' ###################################
+#' ## sample size = 30 ##############
+#' ###################################
 #' X_A_observed <- rnorm(30,mean = 1, sd = 1)
 #' X_B_observed <- rnorm(30,mean = 1.3, sd = 0.5)
 #' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
 #'
-#' densityesPlot = plot_X_prima_AB(res)
-#' print(densityesPlot)
+#' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
+#' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
+#' actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample, X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
+#'
+#'
+#' actualDistributions$X_prima_A_cumulative_empirical <- lm(X_prima_A_cumulative_empirical ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#' actualDistributions$X_prima_B_cumulative_empirical <- lm(X_prima_B_cumulative_empirical ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#'
+#' fig = plot_X_prima_AB(res) +
+#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_A_cumulative_empirical, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_B_cumulative_empirical, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),  values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"), values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#' ggtitle("30 samples used in the estimation")
+#' print(fig)
+#'
+#' ###################################
+#' ## sample size = 300 ##############
+#' ###################################
+#' X_A_observed <- rnorm(300,mean = 1, sd = 1)
+#' X_B_observed <- rnorm(300,mean = 1.3, sd = 0.5)
+#' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
+#'
+#' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
+#' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
+#' actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample, X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
+#'
+#'
+#' actualDistributions$X_prima_A_cumulative_empirical <- lm(X_prima_A_cumulative_empirical ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#' actualDistributions$X_prima_B_cumulative_empirical <- lm(X_prima_B_cumulative_empirical ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#'
+#' fig = plot_X_prima_AB(res) +
+#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_A_cumulative_empirical, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_B_cumulative_empirical, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),  values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"), values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid")) +
+#' ggtitle("300 samples used in the estimation")
+#' print(fig)
+#'
 get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=1000, alpha=0.2,  EPSILON=1e-20) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
@@ -247,7 +341,6 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
   res$X_prima_B_cumulative_lower<- clip_to_0_1_interval(empiricalB + bandSizeB)
   res$X_prima_B_cumulative_upper <- clip_to_0_1_interval(empiricalB - bandSizeB)
 
-
   return(res)
 
 
@@ -271,8 +364,8 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 #' X_A_observed <- rnorm(300,mean = 1, sd = 1)
 #' X_B_observed <- rnorm(300,mean = 1.3, sd = 0.5)
 #' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
-#' densityesPlot = plot_X_prima_AB(res)
-#' print(densityesPlot)
+#' densitiesPlot = plot_X_prima_AB(res)
+#' print(densitiesPlot)
 plot_X_prima_AB <- function(estimated_X_prima_AB_bounds) {
   df <- data.frame(matrix(unlist(estimated_X_prima_AB_bounds), nrow=length(estimated_X_prima_AB_bounds$p), byrow=FALSE))
   colnames(df) <- names(estimated_X_prima_AB_bounds)
@@ -313,7 +406,6 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds) {
 #' ### Example 1 ###
 getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfEstimationPoints, EPSILON) {
 
-  print("computing empirical")
   j_max <- nOfEstimationPoints -2
   ranksObj <- ranksOfObserved(X_A_observed, X_B_observed, EPSILON)
   X_A_ranks <- sort(ranksObj$X_A_ranks)
@@ -323,6 +415,7 @@ getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfE
   res <- list()
   res$X_prima_A_cumulative_empirical <- helperTrapezoidRule(helper_from_ranks_to_integrated_values(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max))
   res$X_prima_B_cumulative_empirical <- helperTrapezoidRule(helper_from_ranks_to_integrated_values(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max))
+  res$p <- 0:j_max / j_max
   return(res)
 }
 
