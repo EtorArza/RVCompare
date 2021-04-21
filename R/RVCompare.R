@@ -146,8 +146,8 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
     X_B_ranks <- sort(ranksObj$X_B_ranks)
     r_max <- ranksObj$r_max
 
-    dataA[i,] <- helper_from_ranks_to_integrated_values(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max)
-    dataB[i,] <- helper_from_ranks_to_integrated_values(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max)
+    dataA[i,] <- helper_from_ranks_to_integrable_values(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max)
+    dataB[i,] <- helper_from_ranks_to_integrable_values(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max)
   }
 
 
@@ -413,8 +413,8 @@ getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfE
   r_max <- ranksObj$r_max
 
   res <- list()
-  res$X_prima_A_cumulative_empirical <- helperTrapezoidRule(helper_from_ranks_to_integrated_values(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max))
-  res$X_prima_B_cumulative_empirical <- helperTrapezoidRule(helper_from_ranks_to_integrated_values(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max))
+  res$X_prima_A_cumulative_empirical <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max))
+  res$X_prima_B_cumulative_empirical <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max))
   res$p <- 0:j_max / j_max
   return(res)
 }
@@ -1074,7 +1074,7 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' j_max <- 12
 #' r_max <- 6
 #' sortedRanks <- c(0,0,0,0,1,1,1,1,1,1,1,3,4)
-#' densities <- helper_from_ranks_to_integrated_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#' densities <- helper_from_ranks_to_integrable_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
 #' # 0.9347826 0.9782609 1.0000000 1.0000000 1.0000000 1.0000000
 #' print(tail(helperTrapezoidRule(densities)))
@@ -1084,7 +1084,7 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' j_max <- 12
 #' r_max <- 19
 #' sortedRanks <- c(0,0,1,1,3,5,6,18,19)
-#' densities <- helper_from_ranks_to_integrated_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#' densities <- helper_from_ranks_to_integrable_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
 #' # 0.8000000 0.8000000 0.8000000 0.8000000 0.8666667 1.0000000
 #' print(tail(helperTrapezoidRule(densities)))
@@ -1094,14 +1094,14 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' j_max <- 12
 #' r_max <- 8
 #' sortedRanks <- c(1,1,3,5,6)
-#' densities <- helper_from_ranks_to_integrated_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#' densities <- helper_from_ranks_to_integrable_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
 #' # 0.6428571 0.7857143 0.9285714 1.0000000 1.0000000 1.0000000
 #' print(tail(helperTrapezoidRule(densities)))
 #' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 #' @export
 #' @return the probability density in this point
-helper_from_ranks_to_integrated_values <- function(sortedRanks, r_max, j_max) {
+helper_from_ranks_to_integrable_values <- function(sortedRanks, r_max, j_max) {
   j_vec = array(0, dim=j_max+1)
 
   last_biggest_index <- 0
