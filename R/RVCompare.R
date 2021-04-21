@@ -13,14 +13,14 @@ library(pracma)
 #'
 #' @param X_A_observed array of the observed samples (real values) of X_A. Computation time increases with min(length(X_A_observed), length(X_B_observed))
 #' @param X_B_observed array of the observed samples (real values) of X_B.
-#' @param nOfQuantiles (optional, default 100) the number of points in the interval [0,1] in which the cumulative density is estimated. Increases computation time.
+#' @param nOfEstimationPoints (optional, default 100) the number of points in the interval [0,1] in which the cumulative density is estimated. Increases computation time.
 #' @param alpha (optional, default value 0.2) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
 #' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
 #' @param nOfBootstrapSamples (optional, default value 1e3) how many bootsrap samples to average. Increases computation time.
 #' @param ignoreUniqueValuesCheck (optional, default value FALSE)
 #' @return Returns a list with the following fields:
 #'
-#' - p: values in the interval [0,1] that represent the nOfQuantiles points in which the densities are estimated. Useful for plotting.
+#' - p: values in the interval [0,1] that represent the nOfEstimationPoints points in which the densities are estimated. Useful for plotting.
 #'
 #' - X_prima_A_cumulative_empirical: an array with the empirical cumulative diustribution function of X_prima_A from 0 to p[[i]].
 #'
@@ -49,7 +49,7 @@ library(pracma)
 #'
 #' densityesPlot = plot_X_prima_AB(res)
 #' print(densityesPlot)
-get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuantiles=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreUniqueValuesCheck=FALSE) {
+get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreUniqueValuesCheck=FALSE) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
@@ -79,7 +79,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuant
   n <- length(X_A_observed)
   m <- length(X_B_observed)
 
-  nDatapointsWhereDensityEstimated <- nOfQuantiles - 1
+  nDatapointsWhereDensityEstimated <- nOfEstimationPoints - 1
   j_max <- nDatapointsWhereDensityEstimated-1
   p <- 0:j_max / j_max # the size of the intervals is 1 / j_max.
 
@@ -104,7 +104,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuant
   }
 
 
-  resEmpirical <- getEmpiricalCumulativeDistributions(X_A_observed, X_B_observed, nOfQuantiles, EPSILON)
+  resEmpirical <- getEmpiricalCumulativeDistributions(X_A_observed, X_B_observed, nOfEstimationPoints, EPSILON)
 
 
   res <- list()
@@ -153,12 +153,12 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuant
 #'
 #' @param X_A_observed array of the observed samples (real values) of X_A.
 #' @param X_B_observed array of the observed samples (real values) of X_B.
-#' @param nOfQuantiles (optional, default 1000) the number of points in the interval [0,1] in which the density is estimated.
+#' @param nOfEstimationPoints (optional, default 1000) the number of points in the interval [0,1] in which the density is estimated.
 #' @param alpha (optional, default value 0.2) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
 #' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
 #' @return Returns a list with the following fields:
 #'
-#' - p: values in the interval [0,1] that represent the nOfQuantiles points in which the densities are estimated. Useful for plotting.
+#' - p: values in the interval [0,1] that represent the nOfEstimationPoints points in which the densities are estimated. Useful for plotting.
 #'
 #' - X_prima_A_cumulative_empirical: an array with the empirical cumulative diustribution function of X_prima_A from 0 to p[[i]].
 #'
@@ -183,7 +183,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfQuant
 #'
 #' densityesPlot = plot_X_prima_AB(res)
 #' print(densityesPlot)
-get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfQuantiles=1000, alpha=0.2,  EPSILON=1e-20) {
+get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=1000, alpha=0.2,  EPSILON=1e-20) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
@@ -213,7 +213,7 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfQuantiles=1
   m <- length(X_B_observed)
   bandSizeB <- sqrt( log(2 / alpha) / (2*m) )
 
-  nDatapointsWhereDensityEstimated <- nOfQuantiles - 1
+  nDatapointsWhereDensityEstimated <- nOfEstimationPoints - 1
   j_max <- nDatapointsWhereDensityEstimated-1
   p <- 0:j_max / j_max # the size of the intervals is 1 / j_max.
 
@@ -225,7 +225,7 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfQuantiles=1
   r_max <- ranksObj$r_max
 
 
-  res<-getEmpiricalCumulativeDistributions(X_A_observed, X_B_observed, nOfQuantiles, EPSILON)
+  res<-getEmpiricalCumulativeDistributions(X_A_observed, X_B_observed, nOfEstimationPoints, EPSILON)
 
 
   empiricalA <- res$X_prima_A_cumulative_empirical
@@ -305,16 +305,16 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds) {
 #'
 #' @param X_A_observed array of the observed samples (real values) of X_A.
 #' @param X_B_observed array of the observed samples (real values) of X_B.
-#' @param nOfQuantiles the number of points in the interval [0,1] in which the cumulative density is estimated + 2.
+#' @param nOfEstimationPoints the number of points in the interval [0,1] in which the cumulative density is estimated + 2.
 #' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
 #' @return a list with two fields: the empirical distributions of X'A and X'B.
 #' @export
 #' @examples
 #' ### Example 1 ###
-getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfQuantiles, EPSILON) {
+getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfEstimationPoints, EPSILON) {
 
   print("computing empirical")
-  j_max <- nOfQuantiles -2
+  j_max <- nOfEstimationPoints -2
   ranksObj <- ranksOfObserved(X_A_observed, X_B_observed, EPSILON)
   X_A_ranks <- sort(ranksObj$X_A_ranks)
   X_B_ranks <- sort(ranksObj$X_B_ranks)
