@@ -8,7 +8,8 @@ getEmpiricalCumulativeDistributions(
   X_A_observed,
   X_B_observed,
   nOfEstimationPoints,
-  EPSILON
+  EPSILON,
+  trapezoid = TRUE
 )
 }
 \arguments{
@@ -19,6 +20,9 @@ getEmpiricalCumulativeDistributions(
 \item{nOfEstimationPoints}{the number of points in the interval [0,1] in which the cumulative density is estimated + 2.}
 
 \item{EPSILON}{(optional, default value 1e-20) minimum difference between two values to be considered different.}
+
+\item{trapezoid}{(optional, default TRUE) if trapezoid=FALSE the non smooth empirical distribution is given. This is
+what the WDK uses the empirical as the estimation.}
 }
 \value{
 a list with two fields: the empirical distributions of X'A and X'B.
@@ -29,4 +33,7 @@ function of X'_A (or X'_B)
 }
 \examples{
 ### Example 1 ###
+c <- getEmpiricalCumulativeDistributions(c(1:5),c(1:3,2:3), 170, EPSILON=1e-20, trapezoid=FALSE)
+plot(c$p, c$X_prima_A_cumulative_estimation, type="l")
+lines(x=c$p, y=c$X_prima_B_cumulative_estimation, col="red")
 }
