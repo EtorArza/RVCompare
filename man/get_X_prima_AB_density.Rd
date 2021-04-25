@@ -26,7 +26,9 @@ X_A_observed <- c(0,2,1)
 X_B_observed <- c(1,6,1,3)
 res <- get_X_prima_AB_density(X_A_observed, X_B_observed)
 x = 0:1001/1001
-matplot(x,cbind(res$X_prima_A(x),res$X_prima_B(x)),type="l",col=c("red","blue"), ylab='Probability density')
-legend(x = c(0.7, 1.0), y = c(2.0, 2.5),legend=c("X'_A", "X'_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
+matplot(x,cbind(res$X_prima_A(x),res$X_prima_B(x)),type="l",col=c("red","blue"),
+                    ylab='Probability density')
+legend(x = c(0.7, 1.0), y = c(2.0, 2.5),legend=c("X'_A", "X'_B"), col=c("red", "blue"),
+                    lty=1:2, cex=0.8) # add legend
 }
 \keyword{internal}

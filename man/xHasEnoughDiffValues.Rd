@@ -21,6 +21,5 @@ This function checks if there are at least minRequiredDiffValues unique
 values in the introduced vector.
 }
 \examples{
-
-
+xHasEnoughDiffValues(c(1,2,2,3,1,5,8,9,67,8.5,4,8.3), 1e-9, 6)
 }

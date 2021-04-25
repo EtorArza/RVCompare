@@ -21,14 +21,17 @@ Returns a real number in the interval [0,1] that represents the probability that
 }
 \examples{
 ### Example 1 ###
-# If two symmetric distributions are centered in the same point (x = 0 in this case), then their Cp will be 0.5.
+# If two symmetric distributions are centered in the same point (x = 0 in
+# this case), then their Cp will be 0.5.
 densityX_A <- normalDensity(0,1)
 densityX_B <- uniformDensity(c(-2,2))
 Cp = CpFromDensities(densityX_A, densityX_B, c(-5,5))
 plot(densityX_A, from=-5, to=5, type="l",  col="red", xlab="x", ylab="probability density")
 curve(densityX_B, add=TRUE, col="blue", type="l", lty=2)
 mtext(paste("Cp(X_A, X_B) =", format(round(Cp, 3), nsmall = 3)), side=3) # add Cp to plot as text
-legend(x = c(-4.5, -2), y = c(0.325, 0.4),legend=c("X_A", "X_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
+legend(x = c(-4.5, -2), y = c(0.325, 0.4),legend=c("X_A", "X_B"),
+                                          col=c("red", "blue"),
+                                          lty=1:2, cex=0.8) # add legend
 
 
 ### Example 2 ###

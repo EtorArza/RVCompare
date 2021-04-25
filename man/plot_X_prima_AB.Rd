@@ -17,7 +17,6 @@ retunrs a ggplot2 with the estimated bounds
 }
 \examples{
 ### Example 1 ###
-library(ggplot2)
 
 X_A_observed <- rnorm(800,mean = 1, sd = 1)
 X_B_observed <- rnorm(800,mean = 1.3, sd = 0.5)

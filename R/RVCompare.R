@@ -1,5 +1,5 @@
-library(stats)
-library(pracma)
+# library(stats)
+# library(pracma)
 
 
 ################## Main functions ##################
@@ -8,8 +8,7 @@ library(pracma)
 #' Estimate X'_A and X'_B bounds with bootstrap
 #'
 #' Estimate the confidence intervals for the cumulative distributions of X'_A and X'_B using bootstrap.
-#' Much slower than the Dvoretzky–Kiefer–Wolfowitz approach-
-#' As a bonus, in addition to the density, the bounds of the cumulative density are also compared.
+#' Much slower than the Dvoretzky–Kiefer–Wolfowitz approach.
 #'
 #' @param X_A_observed array of the observed samples (real values) of X_A. Computation time increases with min(length(X_A_observed), length(X_B_observed))
 #' @param X_B_observed array of the observed samples (real values) of X_B.
@@ -37,13 +36,26 @@ library(pracma)
 #' @export
 #' @examples
 #' library(ggplot2)
+#'
 #' ### Example 1 ###
-#' X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,0.11,2.0,0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,0.316,0.1523,0.1297,0.1123,0.139572,0.1937523)
-#' X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,0.12363,0.132451,0.59217,0.157129,0.13528)
-#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
-#' fig1 = plot_X_prima_AB(res)+ ggtitle("Example 1")
+#' X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,
+#'     0.11,2.0,0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,
+#'     0.316,0.1523,0.1297,0.1123,0.139572,0.1937523)
+#' X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,
+#'     0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,
+#'     0.12363,0.132451,0.59217,0.157129,0.13528)
+#' \donttest{
+#'  res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
+#' }
+#' \dontshow{
+#' # easier on computation for testing.
+#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, nOfBootstrapSamples=1e2)
+#' }
+#' fig1 = plot_X_prima_AB(res)+ ggplot2::ggtitle("Example 1")
 #' print(fig1)
 #'
+#'
+#' \donttest{
 #' ### Example 2 ###
 #' # Comparing the estimations with the actual distributions for two normal distributions.
 #' ###################################
@@ -55,17 +67,34 @@ library(pracma)
 #'
 #' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
 #' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
-#' actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample, X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
+#' actualDistributions <- getEmpiricalCumulativeDistributions(
+#'         X_A_observed_large_sample,
+#'         X_B_observed_large_sample,
+#'         nOfEstimationPoints=1e4,
+#'         EPSILON=1e-20)
 #'
 #'
-#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
-#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~
+#'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+#'         data = actualDistributions)$fitted.values
+#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~
+#'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+#'         data = actualDistributions)$fitted.values
 #'
 #' fig = plot_X_prima_AB(res) +
-#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
-#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
-#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),  values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
-#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"), values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#'
+#' geom_line(data=as.data.frame(actualDistributions),
+#' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#'
+#' geom_line(data=as.data.frame(actualDistributions),
+#' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#'
+#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#'
+#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#'
 #' ggtitle("30 samples used in the estimation")
 #' print(fig)
 #'
@@ -78,19 +107,38 @@ library(pracma)
 #'
 #' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
 #' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
-#' actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample, X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
+#' actualDistributions <- getEmpiricalCumulativeDistributions(
+#'         X_A_observed_large_sample,
+#'         X_B_observed_large_sample,
+#'         nOfEstimationPoints=1e4,
+#'         EPSILON=1e-20)
 #'
 #'
-#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
-#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~
+#'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+#'         data = actualDistributions)$fitted.values
+#'
+#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~
+#'        p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+#'        data = actualDistributions)$fitted.values
 #'
 #' fig = plot_X_prima_AB(res) +
-#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
-#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
-#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),  values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
-#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"), values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid")) +
+#'
+#' geom_line(data=as.data.frame(actualDistributions),
+#' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#'
+#' geom_line(data=as.data.frame(actualDistributions),
+#' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#'
+#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#'
+#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid")) +
+#'
 #' ggtitle("300 samples used in the estimation")
 #' print(fig)
+#' }
 #'
 get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreUniqueValuesCheck=FALSE) {
 
@@ -129,10 +177,10 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
   dataA <- matrix(0, nrow = nOfBootstrapSamples, ncol = nDatapointsWhereDensityEstimated)
   dataB <- matrix(0, nrow = nOfBootstrapSamples, ncol = nDatapointsWhereDensityEstimated)
 
-  pb = txtProgressBar(min = 1, max = nOfBootstrapSamples, initial = 1, style = 3)
+  pb = utils::txtProgressBar(min = 1, max = nOfBootstrapSamples, initial = 1, style = 3)
 
   for (i in 1:nOfBootstrapSamples) {
-    setTxtProgressBar(pb,i)
+    utils::setTxtProgressBar(pb,i)
     bootStrapSampleA <- sample(X_A_observed, size= min(n,m), replace=TRUE)
     bootStrapSampleB <- sample(X_B_observed, size=min(n,m), replace=TRUE)
 
@@ -158,7 +206,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
   dataA <- t(apply(dataA, 1, helperTrapezoidRule))
   dataB <- t(apply(dataB, 1, helperTrapezoidRule))
 
-  quantiles <- apply(dataA, 2, quantile, probs = c(alpha/2, 0.5, 1.0 - alpha/2))
+  quantiles <- apply(dataA, 2, stats::quantile, probs = c(alpha/2, 0.5, 1.0 - alpha/2))
 
 
   res$X_prima_A_cumulative_estimation <- quantiles[2,]
@@ -169,7 +217,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 
 
 
-  quantiles <- apply(dataB, 2, quantile, probs = c(alpha/2, 0.5, 1.0 - alpha/2))
+  quantiles <- apply(dataB, 2, stats::quantile, probs = c(alpha/2, 0.5, 1.0 - alpha/2))
 
   res$X_prima_B_cumulative_estimation <- quantiles[2,]
   res$X_prima_B_cumulative_lower<- quantiles[1,]
@@ -217,12 +265,15 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #' @examples
 #' library(ggplot2)
 #' ### Example 1 ###
-#' X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,0.11,2.0,0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,0.316)
-#' X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13)
+#' X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,0.11,2.0,
+#' 0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,0.316)
+#' X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,0.31,
+#' 0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13)
 #' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
 #' fig1 = plot_X_prima_AB(res) + ggtitle("Example 1")
 #' print(fig1)
 #'
+#' \donttest{
 #' ### Example 2 ###
 #' # Comparing the estimations with the actual distributions for two normal distributions.
 #' ###################################
@@ -234,17 +285,31 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #'
 #' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
 #' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
-#' actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample, X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
+#' actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample,
+#'  X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
 #'
 #'
-#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
-#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~
+#'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+#'         data = actualDistributions)$fitted.values
+#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~
+#'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+#'         data = actualDistributions)$fitted.values
 #'
 #' fig = plot_X_prima_AB(res) +
-#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
-#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
-#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),  values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
-#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"), values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#'
+#' geom_line(data=as.data.frame(actualDistributions),
+#' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#'
+#' geom_line(data=as.data.frame(actualDistributions),
+#' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#'
+#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+#'   values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#'
+#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+#'  values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#'
 #' ggtitle("30 samples used in the estimation")
 #' print(fig)
 #'
@@ -257,20 +322,34 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #'
 #' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
 #' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
-#' actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample, X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
+#' actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample,
+#'  X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
 #'
 #'
-#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
-#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~
+#'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+#'         data = actualDistributions)$fitted.values
+#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~
+#'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+#'         data = actualDistributions)$fitted.values
 #'
 #' fig = plot_X_prima_AB(res) +
-#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
-#' geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
-#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),  values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
-#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"), values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid")) +
+#'
+#' geom_line(data=as.data.frame(actualDistributions),
+#' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#'
+#' geom_line(data=as.data.frame(actualDistributions),
+#' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#'
+#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+#'   values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#'
+#'
+#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+#'  values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid")) +
 #' ggtitle("300 samples used in the estimation")
 #' print(fig)
-#'
+#'}
 get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=1000, alpha=0.2,  EPSILON=1e-20) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
@@ -350,9 +429,9 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 #' @param estimated_X_prima_AB_bounds the bounds estimated with \code{\link{get_X_prima_AB_bounds_bootstrap}} or \code{\link{get_X_prima_AB_bounds_DKW}}.
 #' @return the ggplot figure object.
 #' @export
+#' @import ggplot2
 #' @examples
 #' ### Example 1 ###
-#' library(ggplot2)
 #'
 #' X_A_observed <- rnorm(800,mean = 1, sd = 1)
 #' X_B_observed <- rnorm(800,mean = 1.3, sd = 0.5)
@@ -363,20 +442,27 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds) {
   df <- data.frame(matrix(unlist(estimated_X_prima_AB_bounds), nrow=length(estimated_X_prima_AB_bounds$p), byrow=FALSE))
   colnames(df) <- names(estimated_X_prima_AB_bounds)
 
+  # This annoying hack is necessary to avoid the NOTEs 'about no visible
+  # binding for global variable'. This is a known problem with ggplot2, see
+  # the following link:
+  # https://stackoverflow.com/questions/9439256
+  p <- X_prima_A_cumulative_estimation <- X_prima_B_cumulative_estimation <- NULL
+  X_prima_A_cumulative_lower <- X_prima_B_cumulative_lower <- NULL
+  X_prima_A_cumulative_upper <- X_prima_B_cumulative_upper <- NULL
 
-  resPlot = ggplot() +
-   geom_ribbon(data = df, aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill = "#00BFC4", alpha = 0.15) +
-   geom_ribbon(data = df, aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper), fill = "#F8766D", alpha = 0.15) +
-   geom_line(data = df, aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
-   geom_line(data = df, aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
-   geom_line(data = df, aes(x=p, y=X_prima_A_cumulative_lower, colour = "X'_A", linetype="X'_A")) +
-   geom_line(data = df, aes(x=p, y=X_prima_A_cumulative_upper, colour = "X'_A", linetype="X'_A")) +
-   geom_line(data = df, aes(x=p, y=X_prima_B_cumulative_lower, colour = "X'_B", linetype="X'_B")) +
-   geom_line(data = df, aes(x=p, y=X_prima_B_cumulative_upper, colour = "X'_B", linetype="X'_B")) +
-   scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#F8766D", "#00BFC4")) +
-   scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "solid")) +
-   xlab('x') +
-   ylab('cumulative probability')
+  resPlot = ggplot2::ggplot() +
+    ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill = "#00BFC4", alpha = 0.15) +
+    ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper), fill = "#F8766D", alpha = 0.15) +
+    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
+    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
+    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_lower, colour = "X'_A", linetype="X'_A")) +
+    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_upper, colour = "X'_A", linetype="X'_A")) +
+    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_lower, colour = "X'_B", linetype="X'_B")) +
+    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_upper, colour = "X'_B", linetype="X'_B")) +
+    ggplot2::scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#F8766D", "#00BFC4")) +
+    ggplot2::scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "solid")) +
+    ggplot2::xlab('x') +
+    ggplot2::ylab('cumulative probability')
 
   return(resPlot)
 }
@@ -488,16 +574,20 @@ getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfE
 #' @param densityX_A The probability density function of the random variable X_A.
 #' @param densityX_B The probability density function of the random variable X_B.
 #' @param xlims an interval that represents the domain of definition the density functions.
+#' @param EPSILON (optional, default = 1e-3) minimum difference between two values.
+#' @import pracma
 #' @return Returns the dominance rate of X_A over X_B.
 #' @seealso \code{\link{CpFromDensities}}
 #' @export
 #' @examples
+#' \donttest{
 ### Example 1 ###
-#' # If two symmetric distributions are centered in the same point (x = 0 in this case), then their Cd will be 0.5.
+#' # If two symmetric distributions are centered in the same point (x = 0 in
+#' # this case), then their Cd will be 0.5.
+#'
 #' densityX_A <- normalDensity(0,1)
 #' densityX_B <- uniformDensity(c(-2,2))
 #' CdFromDensities(densityX_A, densityX_B, c(-5,5))
-#'
 #'
 #' ### Example 2 ###
 #' # If two distributions are equal, Cd will be 0.5.  Cd(X_A,X_A) = 0.5
@@ -508,16 +598,22 @@ getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfE
 #' # example on https://etorarza.github.io/pages/2021-interactive-comparing-RV.html
 #' tau <- 0.11
 #' densityX_A <- normalDensity(0.05,0.0015)
-#' densityX_B <- mixtureDensity(c(normalDensity(0.05025,0.0015), normalDensity(0.04525, 0.0015)), weights = c(1 - tau, tau))
+#' densityX_B <- mixtureDensity(c(normalDensity(0.05025,0.0015),
+#'                                normalDensity(0.04525, 0.0015)),
+#'                                weights = c(1 - tau, tau))
 #' plot(densityX_A, from=0.03, to=0.07, type="l",  col="red", xlab="x", ylab="probability density")
 #' curve(densityX_B, add=TRUE, col="blue", type="l", lty=2)
 #' Cd <- CdFromDensities(densityX_A, densityX_B, c(.03,.07))
 #' mtext(paste("Cd(X_A, X_B) =", format(round(Cd, 3), nsmall = 3)), side=3) # add Cd to plot as text
-#' legend(x = c(0.0325, 0.045), y = c(200, 250),legend=c("X_A", "X_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
+#' legend(x = c(0.0325, 0.045), y = c(200, 250),legend=c("X_A", "X_B"),
+#'                                              col=c("red", "blue"),
+#'                                              lty=1:2,
+#'                                              cex=0.8) # add legend
 #'
 #'
 #' ### Example 4 ###
-#' # The dominance factor ignores the mass of the probability where the distribution functinos are equal.
+#' # The dominance factor ignores the mass of the probability where the
+#' # distribution functinos are equal.
 #' densityX_A <- uniformDensity(c(0.1, 0.3))
 #' densityX_B <- uniformDensity(c(-0.2,0.5))
 #' CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
@@ -525,6 +621,7 @@ getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfE
 #' densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))))
 #' densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))))
 #' CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
+#' }
 CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
@@ -551,8 +648,8 @@ CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
 
   cumX_A = cumulativeFromDensity(densityX_A, xlims)
   cumX_B = cumulativeFromDensity(densityX_B, xlims)
-  cA = integral(function(x) {as.integer(abs(cumX_A(x) - cumX_B(x)) > EPSILON) * densityX_A(x)}, xmin=xlims[[1]], xmax=xlims[[2]], method = "Simpson") # the cA in the paper is cA^-1
-  cB = integral(function(x) {as.integer(abs(cumX_A(x) - cumX_B(x)) > EPSILON) * densityX_B(x)}, xmin=xlims[[1]], xmax=xlims[[2]], method = "Simpson") # the cB in the paper is cB^-1
+  cA = pracma::integral(function(x) {as.integer(abs(cumX_A(x) - cumX_B(x)) > EPSILON) * densityX_A(x)}, xmin=xlims[[1]], xmax=xlims[[2]], method = "Simpson") # the cA in the paper is cA^-1
+  cB = pracma::integral(function(x) {as.integer(abs(cumX_A(x) - cumX_B(x)) > EPSILON) * densityX_B(x)}, xmin=xlims[[1]], xmax=xlims[[2]], method = "Simpson") # the cB in the paper is cB^-1
 
   if (min(cA, cB) < EPSILON) {
     return(0.5)
@@ -569,7 +666,7 @@ CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
     }
     }) }
 
-  return(0.5 *integral(f_to_integrate, xmin = xlims[[1]], xmax = xlims[[2]], method = "Simpson") + 0.5)
+  return(0.5 *pracma::integral(f_to_integrate, xmin = xlims[[1]], xmax = xlims[[2]], method = "Simpson") + 0.5)
 
 }
 
@@ -601,14 +698,17 @@ CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
 #' @export
 #' @examples
 #' ### Example 1 ###
-#' # If two symmetric distributions are centered in the same point (x = 0 in this case), then their Cp will be 0.5.
+#' # If two symmetric distributions are centered in the same point (x = 0 in
+#' # this case), then their Cp will be 0.5.
 #' densityX_A <- normalDensity(0,1)
 #' densityX_B <- uniformDensity(c(-2,2))
 #' Cp = CpFromDensities(densityX_A, densityX_B, c(-5,5))
 #' plot(densityX_A, from=-5, to=5, type="l",  col="red", xlab="x", ylab="probability density")
 #' curve(densityX_B, add=TRUE, col="blue", type="l", lty=2)
 #' mtext(paste("Cp(X_A, X_B) =", format(round(Cp, 3), nsmall = 3)), side=3) # add Cp to plot as text
-#' legend(x = c(-4.5, -2), y = c(0.325, 0.4),legend=c("X_A", "X_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
+#' legend(x = c(-4.5, -2), y = c(0.325, 0.4),legend=c("X_A", "X_B"),
+#'                                           col=c("red", "blue"),
+#'                                           lty=1:2, cex=0.8) # add legend
 #'
 #'
 #' ### Example 2 ###
@@ -642,9 +742,9 @@ CpFromDensities <- function(densityX_A, densityX_B, xlims) {
     return(NULL)
   }
 
-  f_to_integrate = function(y) { sapply(y, function(x) {densityX_A(x) * integrate(densityX_B, lower=x, upper=xlims[[2]])$value}) }
+  f_to_integrate = function(y) { sapply(y, function(x) {densityX_A(x) * stats::integrate(densityX_B, lower=x, upper=xlims[[2]])$value}) }
 
-  return(integrate(f_to_integrate, lower = xlims[[1]], upper = xlims[[2]])$value)
+  return(stats::integrate(f_to_integrate, lower = xlims[[1]], upper = xlims[[2]])$value)
 }
 
 
@@ -665,10 +765,12 @@ CpFromDensities <- function(densityX_A, densityX_B, xlims) {
 #' @param xlims an interval that represents the domain of definition of f.
 #' @param tol (optional parameter, default = 0.001) the integral of f is allowed to be in the interval (1-tol, 1+tol), to account for some reasonable error in the integration.
 #' @return Returns True if the function is a non discrete probability density function. Otherwise, returns False.
+#' @import pracma
 #' @export
 #' @examples
 #' dist1 <- normalDensity(0,1)
-#' isFunctionDensity(dist1, c(-2,2)) # the integral of the density of the normal distribution is too low in the interval (-2,2)
+#' # the integral of the density of the normal distribution is too low in the interval (-2,2)
+#' isFunctionDensity(dist1, c(-2,2))
 #' isFunctionDensity(dist1, c(-5,5)) # it is close enough from 1 in the interval (-5,5)
 
 #' dist2 <- uniformDensity(c(0,1))
@@ -676,7 +778,8 @@ CpFromDensities <- function(densityX_A, densityX_B, xlims) {
 #' isFunctionDensity(dist2, xlims=c(0.5,2)) # the integral is not 1
 #'
 #' dist3 <- function(x) 0.5/sqrt(x)
-#' # The integral of the function being 1 is not enough to be considered a density function. It also needs to be boounded.
+#' # The integral of the function being 1 is not enough to be considered a density function.
+#' # It also needs to be boounded.
 #' isFunctionDensity(dist3, c(1e-14,1))
 #'
 isFunctionDensity <- function(f, xlims, tol=1e-3) {
@@ -730,7 +833,7 @@ isFunctionDensity <- function(f, xlims, tol=1e-3) {
   }
 
 
-  integrand = integral(f, xmin = xlims[[1]], xmax = xlims[[2]])
+  integrand = pracma::integral(f, xmin = xlims[[1]], xmax = xlims[[2]])
   if (  !(abs(integrand  -1 ) < tol)  )  {
     print(paste("ERROR: the integral of a density function in its domain must be 1. The value of the integral was ", toString(integrand), " instead.", sep=""))
     return(FALSE)
@@ -752,9 +855,7 @@ isFunctionDensity <- function(f, xlims, tol=1e-3) {
 #' @param minRequiredDiffValues the minimum number of different values required to return TRUE.
 #' @return Returns TRUE if the values are OK. FALSE, if there are not enough unique values.
 #' @export
-#' @examples
-#'
-#'
+#' @examples xHasEnoughDiffValues(c(1,2,2,3,1,5,8,9,67,8.5,4,8.3), 1e-9, 6)
 xHasEnoughDiffValues <- function(X, EPSILON, minRequiredDiffValues) {
   sortedX <- sort(X)
 
@@ -807,7 +908,7 @@ normalDensity <- function(mu, sigma) {
     return(NULL)
   }
 
-  return(function(x) dnorm(x, mean = mu, sd = sigma))
+  return(function(x) stats::dnorm(x, mean = mu, sd = sigma))
 }
 
 
@@ -834,7 +935,7 @@ uniformDensity <- function(xlims) {
     return(NULL)
   }
 
-  return(function(x) dunif(x, min=xlims[[1]], max=xlims[[2]]))
+  return(function(x) stats::dunif(x, min=xlims[[1]], max=xlims[[2]]))
 }
 
 
@@ -851,10 +952,12 @@ uniformDensity <- function(xlims) {
 #' @examples
 #' #If parameter weights not given, equal weights are assumed.
 #' dist1 <- mixtureDensity(c(normalDensity(-2,1), normalDensity(2,1)))
-#' plot(dist1, xlim = c(-5,5), xlab="x", ylab = "Probability density", main="Mixture of two Gaussians with equal weights", cex.main=0.85)
+#' plot(dist1, xlim = c(-5,5), xlab="x", ylab = "Probability density",
+#'      main="Mixture of two Gaussians with equal weights", cex.main=0.85)
 #'
 #' dist2 <- mixtureDensity(c(normalDensity(-2,1), normalDensity(2,1)), weights=c(0.8,0.2))
-#' plot(dist2, xlim = c(-5,5), xlab="x", ylab = "Probability density", main="Mixture of two Gaussians with different weights", cex.main=0.85)
+#' plot(dist2, xlim = c(-5,5), xlab="x", ylab = "Probability density",
+#'      main="Mixture of two Gaussians with different weights", cex.main=0.85)
 mixtureDensity <- function(densities, weights=NULL) {
 
 
@@ -910,8 +1013,8 @@ mixtureDensity <- function(densities, weights=NULL) {
 #' @param xlims the tuple to be checked.
 #' @return TRUE if it is a valid tuple. Otherwise prints error mesage and returns FALSE
 #' @examples
-#' xlims(c(-2,2))
-#' xlims(c(2,-2))
+#' RVCompare:::isXlimsValid(c(-2,2))
+#' RVCompare:::isXlimsValid(c(2,-2))
 isXlimsValid <- function(xlims) {
 
   if (missing(xlims)) {
@@ -949,6 +1052,7 @@ isXlimsValid <- function(xlims) {
 #' @param densityX The probability density function.
 #' @param xlims the domain of definition of the density function.
 #' @param sanityChecks (optional parameter, default = TRUE) boolean value indicating wether to check if the density function is correctly defined.
+#' @import pracma
 #' @return a callable function representing the cumulative distribution.
 #' @keywords internal
 cumulativeFromDensity <- function(densityX, xlims, sanityChecks = TRUE) {
@@ -971,7 +1075,7 @@ cumulativeFromDensity <- function(densityX, xlims, sanityChecks = TRUE) {
     {
       print(paste("ERROR: x = ", toString(x), " is out of the domain defined by xlims = ", toString(xlims), sep=""))
     }
-    return(integral(densityX, xmin=xlims[[1]], xmax=x, method="Simpson"))
+    return(pracma::integral(densityX, xmin=xlims[[1]], xmax=x, method="Simpson"))
     }) }
   )
 }
@@ -1058,8 +1162,10 @@ mixtureOfUniforms <- function(kernelPositions, kernelSize) {
 #' X_B_observed <- c(1,6,1,3)
 #' res <- get_X_prima_AB_density(X_A_observed, X_B_observed)
 #' x = 0:1001/1001
-#' matplot(x,cbind(res$X_prima_A(x),res$X_prima_B(x)),type="l",col=c("red","blue"), ylab='Probability density')
-#' legend(x = c(0.7, 1.0), y = c(2.0, 2.5),legend=c("X'_A", "X'_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
+#' matplot(x,cbind(res$X_prima_A(x),res$X_prima_B(x)),type="l",col=c("red","blue"),
+#'                     ylab='Probability density')
+#' legend(x = c(0.7, 1.0), y = c(2.0, 2.5),legend=c("X'_A", "X'_B"), col=c("red", "blue"),
+#'                     lty=1:2, cex=0.8) # add legend
 get_X_prima_AB_density <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
 
   ranksObj <- ranksOfObserved(X_A_observed, X_B_observed, EPSILON)
@@ -1097,10 +1203,10 @@ get_X_prima_AB_density <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
 #' @export
 #' @examples
 #' ### Example 1 ###
-#' helperTrapezoidRule(c(1,2,3,3,3,4,5,9,3,0,1))
+#' RVCompare:::helperTrapezoidRule(c(1,2,3,3,3,4,5,9,3,0,1))
 #' # 0.00 0.15 0.40 0.70 1.00 1.35 1.80 2.50 3.10 3.25 3.30
 helperTrapezoidRule <- function(densitiesVec) {
-  res <- c(0, head(densitiesVec,-1) + tail(densitiesVec,-1)) / 2
+  res <- c(0, utils::head(densitiesVec,-1) + utils::tail(densitiesVec,-1)) / 2
   return(  cumsum(res * (1 / (length(densitiesVec)-1)))  )
 }
 
@@ -1120,31 +1226,34 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' j_max <- 12
 #' r_max <- 6
 #' sortedRanks <- c(0,0,0,0,1,1,1,1,1,1,1,3,4)
-#' densities <- helper_from_ranks_to_integrable_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#' densities <- RVCompare:::helper_from_ranks_to_integrable_values(
+#'              sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
 #' # 0.9347826 0.9782609 1.0000000 1.0000000 1.0000000 1.0000000
-#' print(tail(helperTrapezoidRule(densities)))
-#' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
+#' print(utils::tail(RVCompare:::helperTrapezoidRule(densities)))
+#' plot(x = 0:j_max / j_max, y = RVCompare:::helperTrapezoidRule(densities), type="l")
 #'
 #' ### Example 2 ###
 #' j_max <- 12
 #' r_max <- 19
 #' sortedRanks <- c(0,0,1,1,3,5,6,18,19)
-#' densities <- helper_from_ranks_to_integrable_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#' densities <- RVCompare:::helper_from_ranks_to_integrable_values(
+#'                                  sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
 #' # 0.8000000 0.8000000 0.8000000 0.8000000 0.8666667 1.0000000
-#' print(tail(helperTrapezoidRule(densities)))
-#' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
+#' print(utils::tail(RVCompare:::helperTrapezoidRule(densities)))
+#' plot(x = 0:j_max / j_max, y = RVCompare:::helperTrapezoidRule(densities), type="l")
 #'
 #' ### Example 3 ###
 #' j_max <- 12
 #' r_max <- 8
 #' sortedRanks <- c(1,1,3,5,6)
-#' densities <- helper_from_ranks_to_integrable_values(sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#' densities <- RVCompare:::helper_from_ranks_to_integrable_values(
+#'              sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
 #' # 0.6428571 0.7857143 0.9285714 1.0000000 1.0000000 1.0000000
-#' print(tail(helperTrapezoidRule(densities)))
-#' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
+#' print(utils::tail(RVCompare:::helperTrapezoidRule(densities)))
+#' plot(x = 0:j_max / j_max, y = RVCompare:::helperTrapezoidRule(densities), type="l")
 #' @export
 #' @return the probability density in this point
 helper_from_ranks_to_integrable_values <- function(sortedRanks, r_max, j_max) {
@@ -1193,7 +1302,7 @@ helper_from_ranks_to_integrable_values <- function(sortedRanks, r_max, j_max) {
   }
 
   #since the integral needs to be 1, we need that sum_{j=0:(j_max-1)}(density in p_j * interval_length) = 1, where p_j = p[[j+1]].
-  return(j_vec / tail(helperTrapezoidRule(j_vec),1))
+  return(j_vec / utils::tail(helperTrapezoidRule(j_vec),1))
 }
 
 

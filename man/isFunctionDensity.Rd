@@ -23,14 +23,16 @@ and its integral in the domain of definition needs to be 1.
 }
 \examples{
 dist1 <- normalDensity(0,1)
-isFunctionDensity(dist1, c(-2,2)) # the integral of the density of the normal distribution is too low in the interval (-2,2)
+# the integral of the density of the normal distribution is too low in the interval (-2,2)
+isFunctionDensity(dist1, c(-2,2))
 isFunctionDensity(dist1, c(-5,5)) # it is close enough from 1 in the interval (-5,5)
 dist2 <- uniformDensity(c(0,1))
 isFunctionDensity(dist2, xlims=c(-2,2))
 isFunctionDensity(dist2, xlims=c(0.5,2)) # the integral is not 1
 
 dist3 <- function(x) 0.5/sqrt(x)
-# The integral of the function being 1 is not enough to be considered a density function. It also needs to be boounded.
+# The integral of the function being 1 is not enough to be considered a density function.
+# It also needs to be boounded.
 isFunctionDensity(dist3, c(1e-14,1))
 
 }

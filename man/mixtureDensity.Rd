@@ -21,8 +21,10 @@ The returned function is a single parameter function that returns the probabilit
 \examples{
 #If parameter weights not given, equal weights are assumed.
 dist1 <- mixtureDensity(c(normalDensity(-2,1), normalDensity(2,1)))
-plot(dist1, xlim = c(-5,5), xlab="x", ylab = "Probability density", main="Mixture of two Gaussians with equal weights", cex.main=0.85)
+plot(dist1, xlim = c(-5,5), xlab="x", ylab = "Probability density",
+     main="Mixture of two Gaussians with equal weights", cex.main=0.85)
 
 dist2 <- mixtureDensity(c(normalDensity(-2,1), normalDensity(2,1)), weights=c(0.8,0.2))
-plot(dist2, xlim = c(-5,5), xlab="x", ylab = "Probability density", main="Mixture of two Gaussians with different weights", cex.main=0.85)
+plot(dist2, xlim = c(-5,5), xlab="x", ylab = "Probability density",
+     main="Mixture of two Gaussians with different weights", cex.main=0.85)
 }

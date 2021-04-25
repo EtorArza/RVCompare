@@ -48,18 +48,30 @@ Returns a list with the following fields:
 }
 \description{
 Estimate the confidence intervals for the cumulative distributions of X'_A and X'_B using bootstrap.
-Much slower than the Dvoretzky–Kiefer–Wolfowitz approach-
-As a bonus, in addition to the density, the bounds of the cumulative density are also compared.
+Much slower than the Dvoretzky–Kiefer–Wolfowitz approach.
 }
 \examples{
 library(ggplot2)
+
 ### Example 1 ###
-X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,0.11,2.0,0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,0.316,0.1523,0.1297,0.1123,0.139572,0.1937523)
-X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,0.12363,0.132451,0.59217,0.157129,0.13528)
-res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
-fig1 = plot_X_prima_AB(res)+ ggtitle("Example 1")
+X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,
+    0.11,2.0,0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,
+    0.316,0.1523,0.1297,0.1123,0.139572,0.1937523)
+X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,
+    0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,
+    0.12363,0.132451,0.59217,0.157129,0.13528)
+\donttest{
+ res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
+}
+\dontshow{
+# easier on computation for testing.
+res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, nOfBootstrapSamples=1e2)
+}
+fig1 = plot_X_prima_AB(res)+ ggplot2::ggtitle("Example 1")
 print(fig1)
 
+
+\donttest{
 ### Example 2 ###
 # Comparing the estimations with the actual distributions for two normal distributions.
 ###################################
@@ -71,17 +83,34 @@ res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 
 X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
 X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
-actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample, X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
+actualDistributions <- getEmpiricalCumulativeDistributions(
+        X_A_observed_large_sample,
+        X_B_observed_large_sample,
+        nOfEstimationPoints=1e4,
+        EPSILON=1e-20)
 
 
-actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
-actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~
+        p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+        data = actualDistributions)$fitted.values
+actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~
+        p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+        data = actualDistributions)$fitted.values
 
 fig = plot_X_prima_AB(res) +
-geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
-geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
-scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),  values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
-scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"), values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+
+geom_line(data=as.data.frame(actualDistributions),
+aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
+
+geom_line(data=as.data.frame(actualDistributions),
+aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
+
+scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+
+scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+
 ggtitle("30 samples used in the estimation")
 print(fig)
 
@@ -94,18 +123,37 @@ res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 
 X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
 X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
-actualDistributions <- getEmpiricalCumulativeDistributions(X_A_observed_large_sample, X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
+actualDistributions <- getEmpiricalCumulativeDistributions(
+        X_A_observed_large_sample,
+        X_B_observed_large_sample,
+        nOfEstimationPoints=1e4,
+        EPSILON=1e-20)
 
 
-actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
-actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~ p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8), data = actualDistributions)$fitted.values
+actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~
+        p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+        data = actualDistributions)$fitted.values
+
+actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~
+       p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
+       data = actualDistributions)$fitted.values
 
 fig = plot_X_prima_AB(res) +
-geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
-geom_line(data=as.data.frame(actualDistributions), aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
-scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),  values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
-scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"), values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid")) +
+
+geom_line(data=as.data.frame(actualDistributions),
+aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
+
+geom_line(data=as.data.frame(actualDistributions),
+aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
+
+scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+
+scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
+values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid")) +
+
 ggtitle("300 samples used in the estimation")
 print(fig)
+}
 
 }

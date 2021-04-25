@@ -12,6 +12,8 @@ CdFromDensities(densityX_A, densityX_B, xlims, EPSILON = 0.001)
 \item{densityX_B}{The probability density function of the random variable X_B.}
 
 \item{xlims}{an interval that represents the domain of definition the density functions.}
+
+\item{EPSILON}{(optional, default = 1e-3) minimum difference between two values.}
 }
 \value{
 Returns the dominance rate of X_A over X_B.
@@ -21,11 +23,13 @@ Returns a real number in the interval [0,1] that represents the dominance rate o
 Basically, we are measuring the amount of mass of X_A in which the cumulative distribution of X_A is higher minus the amount of mass of X_B in which the cumulative distribution of X_B is higher.
 }
 \examples{
-# If two symmetric distributions are centered in the same point (x = 0 in this case), then their Cd will be 0.5.
+\donttest{
+# If two symmetric distributions are centered in the same point (x = 0 in
+# this case), then their Cd will be 0.5.
+
 densityX_A <- normalDensity(0,1)
 densityX_B <- uniformDensity(c(-2,2))
 CdFromDensities(densityX_A, densityX_B, c(-5,5))
-
 
 ### Example 2 ###
 # If two distributions are equal, Cd will be 0.5.  Cd(X_A,X_A) = 0.5
@@ -36,16 +40,22 @@ CdFromDensities(densityX_A, densityX_A, c(-10,10))
 # example on https://etorarza.github.io/pages/2021-interactive-comparing-RV.html
 tau <- 0.11
 densityX_A <- normalDensity(0.05,0.0015)
-densityX_B <- mixtureDensity(c(normalDensity(0.05025,0.0015), normalDensity(0.04525, 0.0015)), weights = c(1 - tau, tau))
+densityX_B <- mixtureDensity(c(normalDensity(0.05025,0.0015),
+                               normalDensity(0.04525, 0.0015)),
+                               weights = c(1 - tau, tau))
 plot(densityX_A, from=0.03, to=0.07, type="l",  col="red", xlab="x", ylab="probability density")
 curve(densityX_B, add=TRUE, col="blue", type="l", lty=2)
 Cd <- CdFromDensities(densityX_A, densityX_B, c(.03,.07))
 mtext(paste("Cd(X_A, X_B) =", format(round(Cd, 3), nsmall = 3)), side=3) # add Cd to plot as text
-legend(x = c(0.0325, 0.045), y = c(200, 250),legend=c("X_A", "X_B"), col=c("red", "blue"), lty=1:2, cex=0.8) # add legend
+legend(x = c(0.0325, 0.045), y = c(200, 250),legend=c("X_A", "X_B"),
+                                             col=c("red", "blue"),
+                                             lty=1:2,
+                                             cex=0.8) # add legend
 
 
 ### Example 4 ###
-# The dominance factor ignores the mass of the probability where the distribution functinos are equal.
+# The dominance factor ignores the mass of the probability where the
+# distribution functinos are equal.
 densityX_A <- uniformDensity(c(0.1, 0.3))
 densityX_B <- uniformDensity(c(-0.2,0.5))
 CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
@@ -53,6 +63,7 @@ CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
 densityX_A <- mixtureDensity(c(uniformDensity(c(0.1,0.3)), uniformDensity(c(-1,-0.5))))
 densityX_B <- mixtureDensity(c(uniformDensity(c(-0.2,0.5)), uniformDensity(c(-1,-0.5))))
 CdFromDensities(densityX_A, densityX_B, xlims = c(-2,2))
+}
 }
 \seealso{
 \code{\link{CpFromDensities}}
