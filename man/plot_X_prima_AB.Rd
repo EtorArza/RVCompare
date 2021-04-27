@@ -4,10 +4,12 @@
 \alias{plot_X_prima_AB}
 \title{Plot the estimated bounds}
 \usage{
-plot_X_prima_AB(estimated_X_prima_AB_bounds)
+plot_X_prima_AB(estimated_X_prima_AB_bounds, plotDifference = FALSE)
 }
 \arguments{
 \item{estimated_X_prima_AB_bounds}{the bounds estimated with \code{\link{get_X_prima_AB_bounds_bootstrap}} or \code{\link{get_X_prima_AB_bounds_DKW}}.}
+
+\item{plotDifference}{(optional, default=FALSE) plots the difference (X'_A - X'_B) instead of each of the random variables on their own.}
 }
 \value{
 the ggplot figure object.

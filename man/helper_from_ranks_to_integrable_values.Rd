@@ -24,33 +24,33 @@ The density corresponding to the position in index j is computed, given the SORT
 j_max <- 12
 r_max <- 6
 sortedRanks <- c(0,0,0,0,1,1,1,1,1,1,1,3,4)
-densities <- RVCompare:::helper_from_ranks_to_integrable_values(
+densities <- helper_from_ranks_to_integrable_values(
              sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
 plot(x = 0:j_max / j_max, y = densities, type="l")
 # 0.9347826 0.9782609 1.0000000 1.0000000 1.0000000 1.0000000
-print(utils::tail(RVCompare:::helperTrapezoidRule(densities)))
-plot(x = 0:j_max / j_max, y = RVCompare:::helperTrapezoidRule(densities), type="l")
+print(utils::tail(helperTrapezoidRule(densities)))
+plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 
 ### Example 2 ###
 j_max <- 12
 r_max <- 19
 sortedRanks <- c(0,0,1,1,3,5,6,18,19)
-densities <- RVCompare:::helper_from_ranks_to_integrable_values(
+densities <- helper_from_ranks_to_integrable_values(
                                  sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
 plot(x = 0:j_max / j_max, y = densities, type="l")
 # 0.8000000 0.8000000 0.8000000 0.8000000 0.8666667 1.0000000
-print(utils::tail(RVCompare:::helperTrapezoidRule(densities)))
-plot(x = 0:j_max / j_max, y = RVCompare:::helperTrapezoidRule(densities), type="l")
+print(utils::tail(helperTrapezoidRule(densities)))
+plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 
 ### Example 3 ###
 j_max <- 12
 r_max <- 8
 sortedRanks <- c(1,1,3,5,6)
-densities <- RVCompare:::helper_from_ranks_to_integrable_values(
+densities <- helper_from_ranks_to_integrable_values(
              sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
 plot(x = 0:j_max / j_max, y = densities, type="l")
 # 0.6428571 0.7857143 0.9285714 1.0000000 1.0000000 1.0000000
-print(utils::tail(RVCompare:::helperTrapezoidRule(densities)))
-plot(x = 0:j_max / j_max, y = RVCompare:::helperTrapezoidRule(densities), type="l")
+print(utils::tail(helperTrapezoidRule(densities)))
+plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 }
 \keyword{internal}

@@ -15,7 +15,3 @@ TRUE if it is a valid tuple. Otherwise prints error mesage and returns FALSE
 \description{
 Check if xlims is a tuple that represents a valid bounded interval in the real space.
 }
-\examples{
-RVCompare:::isXlimsValid(c(-2,2))
-RVCompare:::isXlimsValid(c(2,-2))
-}

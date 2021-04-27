@@ -406,12 +406,12 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 
 
 
-  res$X_prima_A_cumulative_lower<- clip_to_0_1_interval(empiricalA + bandSizeA)
-  res$X_prima_A_cumulative_upper <- clip_to_0_1_interval(empiricalA - bandSizeA)
+  res$X_prima_A_cumulative_lower<- clip_to_0_1_interval(empiricalA - bandSizeA)
+  res$X_prima_A_cumulative_upper <- clip_to_0_1_interval(empiricalA + bandSizeA)
 
 
-  res$X_prima_B_cumulative_lower<- clip_to_0_1_interval(empiricalB + bandSizeB)
-  res$X_prima_B_cumulative_upper <- clip_to_0_1_interval(empiricalB - bandSizeB)
+  res$X_prima_B_cumulative_lower<- clip_to_0_1_interval(empiricalB - bandSizeB)
+  res$X_prima_B_cumulative_upper <- clip_to_0_1_interval(empiricalB + bandSizeB)
 
   return(res)
 
@@ -427,6 +427,7 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 #'
 #'
 #' @param estimated_X_prima_AB_bounds the bounds estimated with \code{\link{get_X_prima_AB_bounds_bootstrap}} or \code{\link{get_X_prima_AB_bounds_DKW}}.
+#' @param plotDifference (optional, default=FALSE) plots the difference (X'_A - X'_B) instead of each of the random variables on their own.
 #' @return the ggplot figure object.
 #' @export
 #' @import ggplot2
@@ -438,7 +439,7 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 #' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
 #' densitiesPlot = plot_X_prima_AB(res)
 #' print(densitiesPlot)
-plot_X_prima_AB <- function(estimated_X_prima_AB_bounds) {
+plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, plotDifference=FALSE) {
   df <- data.frame(matrix(unlist(estimated_X_prima_AB_bounds), nrow=length(estimated_X_prima_AB_bounds$p), byrow=FALSE))
   colnames(df) <- names(estimated_X_prima_AB_bounds)
 
@@ -450,21 +451,39 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds) {
   X_prima_A_cumulative_lower <- X_prima_B_cumulative_lower <- NULL
   X_prima_A_cumulative_upper <- X_prima_B_cumulative_upper <- NULL
 
-  resPlot = ggplot2::ggplot() +
-    ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill = "#00BFC4", alpha = 0.15) +
-    ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper), fill = "#F8766D", alpha = 0.15) +
-    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
-    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
-    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_lower, colour = "X'_A", linetype="X'_A")) +
-    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_upper, colour = "X'_A", linetype="X'_A")) +
-    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_lower, colour = "X'_B", linetype="X'_B")) +
-    ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_upper, colour = "X'_B", linetype="X'_B")) +
-    ggplot2::scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#F8766D", "#00BFC4")) +
-    ggplot2::scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "solid")) +
-    ggplot2::xlab('x') +
-    ggplot2::ylab('cumulative probability')
+  if (plotDifference) {
+    diff_estimation <- estimated_X_prima_AB_bounds$X_prima_A_cumulative_estimation - estimated_X_prima_AB_bounds$X_prima_B_cumulative_estimation
+    diff_upper <- estimated_X_prima_AB_bounds$X_prima_A_cumulative_upper - estimated_X_prima_AB_bounds$X_prima_B_cumulative_lower
+    diff_lower <- estimated_X_prima_AB_bounds$X_prima_A_cumulative_lower - estimated_X_prima_AB_bounds$X_prima_B_cumulative_upper
+    p <- estimated_X_prima_AB_bounds$p
+    diff_plotdf <- data.frame(p, diff_estimation, diff_lower, diff_upper)
 
-  return(resPlot)
+    resPlot = ggplot2::ggplot() +
+      ggplot2::xlim(0,1) +
+      ggplot2::ylim(-1,1) +
+      ggplot2::geom_ribbon(data = diff_plotdf, ggplot2::aes(x=p, ymin = diff_lower, ymax = diff_upper), fill = "#000000", alpha = 0.15) +
+      ggplot2::geom_line(data = diff_plotdf, ggplot2::aes(x=p, y=diff_estimation), color='black') +
+      ggplot2::xlab('x') +
+      ggplot2::ylab('difference in cumulative probability')
+    return(resPlot)
+
+  }else{
+    resPlot = ggplot2::ggplot() +
+      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill = "#00BFC4", alpha = 0.15) +
+      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper), fill = "#F8766D", alpha = 0.15) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_lower, colour = "X'_A", linetype="X'_A")) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_upper, colour = "X'_A", linetype="X'_A")) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_lower, colour = "X'_B", linetype="X'_B")) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_upper, colour = "X'_B", linetype="X'_B")) +
+      ggplot2::scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#F8766D", "#00BFC4")) +
+      ggplot2::scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "solid")) +
+      ggplot2::xlab('x') +
+      ggplot2::ylab('cumulative probability')
+
+    return(resPlot)
+  }
 }
 
 
@@ -994,15 +1013,32 @@ mixtureDensity <- function(densities, weights=NULL) {
 
 
 
+#' Get sample given the density function
+#'
+#' Returns an array with samples given the probability density function.
+#' @param density the probability density function.
+#' @param nSamples the number of samples to generate.
+#' @param xlims the domain of definition of the random variable.
+#' @param nIntervals (optional, default = 1e4) the number of intervals from which to draw samples. A higher value implies more accuracy but also more computation time.
+#' @return Returns an array of samples.
+#' @export
+#' @examples
+#' normDens <- normalDensity(0,1)
+#' samples <- sampleFromDensity(normDens, 1e4, c(-4,4))
+#' hist(samples,  breaks=20)
+sampleFromDensity <- function(density, nSamples, xlims, nIntervals=1e5) {
 
-
-
-
-
-
-
-
-
+  # parameter checks
+  if (!isXlimsValid(xlims)) {
+    print("ERROR: xlims in not correctly defined.")
+    return(NULL)
+  }
+  X <- 0:nIntervals / nIntervals * (xlims[[2]] - xlims[[1]]) + xlims[[1]]
+  interval_size <- X[[2]] -  X[[1]]
+  weights <- sapply(utils::head(X,-1) + interval_size / 2, density)
+  indexes <- sample(1:nIntervals, nSamples, prob=weights, replace = TRUE)
+  return (X[indexes] + stats::runif(nSamples) * interval_size)
+}
 
 
 
