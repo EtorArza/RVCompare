@@ -469,16 +469,16 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, plotDifference=FALSE) {
 
   }else{
     resPlot = ggplot2::ggplot() +
-      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill = "#00BFC4", alpha = 0.15) +
-      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper), fill = "#F8766D", alpha = 0.15) +
+      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper), fill="#00BFC4",  alpha = 0.15) +
+      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill="#F8766D",  alpha = 0.15) +
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_lower, colour = "X'_A", linetype="X'_A")) +
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_upper, colour = "X'_A", linetype="X'_A")) +
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_lower, colour = "X'_B", linetype="X'_B")) +
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_upper, colour = "X'_B", linetype="X'_B")) +
-      ggplot2::scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#F8766D", "#00BFC4")) +
-      ggplot2::scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("dashed", "solid")) +
+      ggplot2::scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#00BFC4", "#F8766D")) +
+      ggplot2::scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("solid", "dashed")) +
       ggplot2::xlab('x') +
       ggplot2::ylab('cumulative probability')
 
@@ -1088,6 +1088,11 @@ isXlimsValid <- function(xlims) {
 #' @import pracma
 #' @return a callable function representing the cumulative distribution.
 #' @keywords internal
+#' @export
+#' @examples
+#' cumulativeProbability <- cumulativeFromDensity(normalDensity(0,1), c(-4,4), FALSE)
+#' x <- seq(-4, 4, length.out=101)
+#' plot(x, cumulativeProbability(x), type = "l")
 cumulativeFromDensity <- function(densityX, xlims, sanityChecks = TRUE) {
   if(!isXlimsValid(xlims))
   {

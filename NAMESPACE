@@ -2,6 +2,7 @@
 
 export(CdFromDensities)
 export(CpFromDensities)
+export(cumulativeFromDensity)
 export(getEmpiricalCumulativeDistributions)
 export(get_X_prima_AB_bounds_DKW)
 export(get_X_prima_AB_bounds_bootstrap)

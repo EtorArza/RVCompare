@@ -19,4 +19,9 @@ a callable function representing the cumulative distribution.
 \description{
 Get the cumulative distribution function given the distribution function.
 }
+\examples{
+cumulativeProbability <- cumulativeFromDensity(normalDensity(0,1), c(-4,4), FALSE)
+x <- seq(-4, 4, length.out=101)
+plot(x, cumulativeProbability(x), type = "l")
+}
 \keyword{internal}
