@@ -166,7 +166,6 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 
 
 
-
   n <- length(X_A_observed)
   m <- length(X_B_observed)
 
@@ -193,8 +192,10 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
     dataA[i,] <- helper_from_ranks_to_integrable_values(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max)
     dataB[i,] <- helper_from_ranks_to_integrable_values(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max)
   }
-
-
+  alpha_new <- 1 - sqrt(1-alpha)
+  # matplot(dataA, type = c("l"),pch=1, xlab = "density dataA") #plot
+  # matplot(dataB, type = c("l"),pch=1, xlab = "density dataB") #plot
+  # matplot(dataA - dataB, type = c("l"),pch=1, xlab = "density dataA - dataB") #plot
 
 
   res <- list()
@@ -206,7 +207,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
   dataA <- t(apply(dataA, 1, helperTrapezoidRule))
   dataB <- t(apply(dataB, 1, helperTrapezoidRule))
 
-  quantiles <- apply(dataA, 2, stats::quantile, probs = c(alpha/2, 0.5, 1.0 - alpha/2))
+  quantiles <- apply(dataA, 2, stats::quantile, probs = c(alpha_new/2, 0.5, 1.0 - alpha_new/2))
 
 
   res$X_prima_A_cumulative_estimation <- quantiles[2,]
@@ -214,10 +215,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
   res$X_prima_A_cumulative_upper <- quantiles[3,]
 
 
-
-
-
-  quantiles <- apply(dataB, 2, stats::quantile, probs = c(alpha/2, 0.5, 1.0 - alpha/2))
+  quantiles <- apply(dataB, 2, stats::quantile, probs = c(alpha_new/2, 0.5, 1.0 - alpha_new/2))
 
   res$X_prima_B_cumulative_estimation <- quantiles[2,]
   res$X_prima_B_cumulative_lower<- quantiles[1,]
@@ -374,11 +372,12 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
   }
 
 
+  alpha_new <- 1 - sqrt(1-alpha)
 
   n <- length(X_A_observed)
-  bandSizeA <- sqrt( log(2 / alpha) / (2*n) )
+  bandSizeA <- sqrt( log(2 / alpha_new) / (2*n) )
   m <- length(X_B_observed)
-  bandSizeB <- sqrt( log(2 / alpha) / (2*m) )
+  bandSizeB <- sqrt( log(2 / alpha_new) / (2*m) )
 
   nDatapointsWhereDensityEstimated <- nOfEstimationPoints - 1
   j_max <- nDatapointsWhereDensityEstimated-1
@@ -450,6 +449,7 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, plotDifference=FALSE) {
   p <- X_prima_A_cumulative_estimation <- X_prima_B_cumulative_estimation <- NULL
   X_prima_A_cumulative_lower <- X_prima_B_cumulative_lower <- NULL
   X_prima_A_cumulative_upper <- X_prima_B_cumulative_upper <- NULL
+  x <- ymin <- ymax <- NULL
 
   if (plotDifference) {
     diff_estimation <- estimated_X_prima_AB_bounds$X_prima_A_cumulative_estimation - estimated_X_prima_AB_bounds$X_prima_B_cumulative_estimation
@@ -461,9 +461,11 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, plotDifference=FALSE) {
     resPlot = ggplot2::ggplot() +
       ggplot2::xlim(0,1) +
       ggplot2::ylim(-1,1) +
+      ggplot2::geom_ribbon(data = as.data.frame(list("x"=c(0.0,0.5,1.0), "ymax"=c(0.0,1.0,0.0), "ymin"=c(0.0,-1.0,0.0))), ggplot2::aes(x=x, ymin = ymin, ymax = ymax), fill = "#000000", alpha = 0.025) +
       ggplot2::geom_ribbon(data = diff_plotdf, ggplot2::aes(x=p, ymin = diff_lower, ymax = diff_upper), fill = "#000000", alpha = 0.15) +
       ggplot2::geom_line(data = diff_plotdf, ggplot2::aes(x=p, y=diff_estimation), color='black') +
       ggplot2::xlab('x') +
+      ggplot2::theme_minimal() +
       ggplot2::ylab('difference in cumulative probability')
     return(resPlot)
 
@@ -473,10 +475,10 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, plotDifference=FALSE) {
       ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill="#F8766D",  alpha = 0.15) +
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_lower, colour = "X'_A", linetype="X'_A")) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_upper, colour = "X'_A", linetype="X'_A")) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_lower, colour = "X'_B", linetype="X'_B")) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_upper, colour = "X'_B", linetype="X'_B")) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_lower, colour = "X'_A", linetype="X'_A"), alpha=0.4) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_upper, colour = "X'_A", linetype="X'_A"), alpha=0.4) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_lower, colour = "X'_B", linetype="X'_B"), alpha=0.4) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_upper, colour = "X'_B", linetype="X'_B"), alpha=0.4) +
       ggplot2::scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#00BFC4", "#F8766D")) +
       ggplot2::scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("solid", "dashed")) +
       ggplot2::xlab('x') +
@@ -1151,16 +1153,48 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
   }
 
 
+  # Modify the ranks so that the slope of $X'_A$ plus the slope of $X'_B$ is constant.
 
-  # print(all_values)
-  # print("order_original")
-  # print(order_original)
-  # print("order")
-  # print(order)
-  # print("inv_order")
-  # print(inv_order)
+  ranksA <- inv_order[1:n]-1
+  ranksB <- inv_order[n+1:m]-1
 
-  return(list("X_A_ranks"=inv_order[1:n]-1, "X_B_ranks"=inv_order[n+1:m]-1, "r_max"= n+m - n_repeated - 1))
+  # We compute the lowest common multiple of the repetitions
+  max_rank <- max(c(ranksA, ranksB))
+
+  lcm_on_number_of_repeated_ranks <- lowestCommonMultiple(table(c(ranksA, ranksB)))
+  tabRanksAll <- table(c(ranksA, ranksB))
+  tabRanksA <- table(factor(ranksA, levels=0:max_rank))
+  tabRanksB <- table(factor(ranksB, levels=0:max_rank))
+
+  newRanksA <- c()
+  newRanksB <- c()
+
+  current_rank <- 0
+  for (rank in 0:max_rank) {
+    interval_length <- tabRanksAll[toString(rank)]
+
+    nAddNewRanksA <- lcm_on_number_of_repeated_ranks / tabRanksAll[toString(rank)] * tabRanksA[toString(rank)]
+    nAddNewRanksB <- lcm_on_number_of_repeated_ranks / tabRanksAll[toString(rank)] * tabRanksB[toString(rank)]
+
+    newRanksA <- c(newRanksA, sort(rep(current_rank:(current_rank+interval_length-1), nAddNewRanksA)))
+    newRanksB <- c(newRanksB, sort(rep(current_rank:(current_rank+interval_length-1), nAddNewRanksB)))
+    current_rank = current_rank + interval_length
+  }
+
+
+
+
+  # ranksOfObserved(c(0.1,0.2,0.5), c(0.2,0.4,0.5))
+  # # Desired ouput ->
+  # $X_A_ranks
+  # [1] 0 0  1 2       4 5
+  # $X_B_ranks
+  # [1]      1 2  3 3  4 5
+
+  # # explanation -> we need the slope two be half when two ranks are shared in both positions.
+  # thus, we duplicate the slope in the rest of the positions. What about 2 reps in A and 3 in B shared?
+
+  return(list("X_A_ranks"=newRanksA, "X_B_ranks"=newRanksB, "r_max"= max(c(newRanksA,newRanksB))))
 }
 
 
@@ -1181,6 +1215,29 @@ mixtureOfUniforms <- function(kernelPositions, kernelSize) {
 
   return(mixtureDensity(distributions))
 }
+
+
+
+#' Get the lowest common divisor
+#' @param integerArray an array of integers.
+#' @return a integer that is the lcd of the numbers in integerArray
+#' @keywords internal
+lowestCommonMultiple <- function(integerArray) {
+  res <-1
+  uniueIntegerArray <- unique(integerArray)
+  for (value in uniueIntegerArray) {
+    res <- pracma::Lcm(res, value)
+  }
+  return(res)
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -1295,6 +1352,8 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' @export
 #' @return the probability density in this point
 helper_from_ranks_to_integrable_values <- function(sortedRanks, r_max, j_max) {
+
+
   j_vec = array(0, dim=j_max+1)
 
   last_biggest_index <- 0
