@@ -15,9 +15,9 @@ get_X_prima_AB_bounds_bootstrap(
 )
 }
 \arguments{
-\item{X_A_observed}{array of the observed samples (real values) of X_A. Computation time increases with min(length(X_A_observed), length(X_B_observed))}
+\item{X_A_observed}{array of the observed samples (real values) of X_A.}
 
-\item{X_B_observed}{array of the observed samples (real values) of X_B.}
+\item{X_B_observed}{array of the observed samples (real values) of X_B, it needs to have the same length as X_A.}
 
 \item{nOfEstimationPoints}{(optional, default 100) the number of points in the interval [0,1] in which the cumulative density is estimated. Increases computation time.}
 
@@ -25,7 +25,7 @@ get_X_prima_AB_bounds_bootstrap(
 
 \item{EPSILON}{(optional, default value 1e-20) minimum difference between two values to be considered different.}
 
-\item{nOfBootstrapSamples}{(optional, default value 1e3) how many bootsrap samples to average. Increases computation time.}
+\item{nOfBootstrapSamples}{(optional, default value 1e3) how many bootstrap samples to average. Increases computation time.}
 
 \item{ignoreUniqueValuesCheck}{(optional, default value FALSE)}
 }
@@ -59,7 +59,7 @@ X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,
     0.316,0.1523,0.1297,0.1123,0.139572,0.1937523)
 X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,
     0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,
-    0.12363,0.132451,0.59217,0.157129,0.13528)
+    0.12363,0.132451,0.59217,0.157129,0.13528, 0.145)
 \donttest{
  res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 }

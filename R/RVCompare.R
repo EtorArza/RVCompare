@@ -10,12 +10,12 @@
 #' Estimate the confidence intervals for the cumulative distributions of X'_A and X'_B using bootstrap.
 #' Much slower than the Dvoretzky–Kiefer–Wolfowitz approach.
 #'
-#' @param X_A_observed array of the observed samples (real values) of X_A. Computation time increases with min(length(X_A_observed), length(X_B_observed))
-#' @param X_B_observed array of the observed samples (real values) of X_B.
+#' @param X_A_observed array of the observed samples (real values) of X_A.
+#' @param X_B_observed array of the observed samples (real values) of X_B, it needs to have the same length as X_A.
 #' @param nOfEstimationPoints (optional, default 100) the number of points in the interval [0,1] in which the cumulative density is estimated. Increases computation time.
 #' @param alpha (optional, default value 0.2) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
 #' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
-#' @param nOfBootstrapSamples (optional, default value 1e3) how many bootsrap samples to average. Increases computation time.
+#' @param nOfBootstrapSamples (optional, default value 1e3) how many bootstrap samples to average. Increases computation time.
 #' @param ignoreUniqueValuesCheck (optional, default value FALSE)
 #' @return Returns a list with the following fields:
 #'
@@ -43,7 +43,7 @@
 #'     0.316,0.1523,0.1297,0.1123,0.139572,0.1937523)
 #' X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,
 #'     0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,
-#'     0.12363,0.132451,0.59217,0.157129,0.13528)
+#'     0.12363,0.132451,0.59217,0.157129,0.13528, 0.145)
 #' \donttest{
 #'  res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 #' }
@@ -144,30 +144,38 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
+    return(NULL)
   }
 
   if (alpha > 1 || alpha <= 0.0) {
     print("ERROR: alpha must be defined in the interval (0,1). It represents the error of the CI.")
+    return(NULL)
   }
 
   if(!xHasEnoughDiffValues(X_A_observed, EPSILON, 20)) {
     print("ERROR: X_A_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
     print("Try reducing EPSILON or obtaining additional samples.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
+    return(NULL)
   }
 
   if(!xHasEnoughDiffValues(X_B_observed, EPSILON, 20)) {
     print("ERROR: X_B_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
     print("Try reducing EPSILON or obtaining additional samples.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
+    return(NULL)
   }
-
-
 
 
 
   n <- length(X_A_observed)
   m <- length(X_B_observed)
+
+  if (length(n) != length(m)) {
+    print("ERROR: X_A_observed and X_B_observed need to be of equal length.")
+    return(NULL)
+  }
+
 
   nDatapointsWhereDensityEstimated <- nOfEstimationPoints - 1
   j_max <- nDatapointsWhereDensityEstimated-1
@@ -263,10 +271,12 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #' @examples
 #' library(ggplot2)
 #' ### Example 1 ###
-#' X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,0.11,2.0,
-#' 0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,0.316)
-#' X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,0.31,
-#' 0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13)
+#' X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,
+#'     0.11,2.0,0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,
+#'     0.316,0.1523,0.1297,0.1123,0.139572,0.1937523)
+#' X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,
+#'     0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,
+#'     0.12363,0.132451,0.59217,0.157129,0.13528, 0.145)
 #' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
 #' fig1 = plot_X_prima_AB(res) + ggtitle("Example 1")
 #' print(fig1)
@@ -352,10 +362,13 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
+    return(NULL)
+
   }
 
   if (alpha > 1 || alpha <= 0.0) {
     print("ERROR: alpha must be defined in the interval (0,1). It represents the error of the CI.")
+    return(NULL)
   }
 
 
@@ -363,13 +376,15 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
     print("ERROR: X_A_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
     print("Try reducing EPSILON or obtaining additional samples.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
+    return(NULL)
   }
 
   if(!xHasEnoughDiffValues(X_B_observed, EPSILON, 20)) {
     print("ERROR: X_B_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
     print("Try reducing EPSILON or obtaining additional samples.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
-  }
+    return(NULL)
+}
 
 
   alpha_new <- 1 - sqrt(1-alpha)
@@ -378,6 +393,12 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
   bandSizeA <- sqrt( log(2 / alpha_new) / (2*n) )
   m <- length(X_B_observed)
   bandSizeB <- sqrt( log(2 / alpha_new) / (2*m) )
+
+
+  if (length(n) != length(m)) {
+    print("ERROR: X_A_observed and X_B_observed need to be of equal length.")
+    return(NULL)
+  }
 
   nDatapointsWhereDensityEstimated <- nOfEstimationPoints - 1
   j_max <- nDatapointsWhereDensityEstimated-1
