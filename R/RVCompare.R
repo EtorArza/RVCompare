@@ -447,6 +447,7 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 #'
 #'
 #' @param estimated_X_prima_AB_bounds the bounds estimated with \code{\link{get_X_prima_AB_bounds_bootstrap}} or \code{\link{get_X_prima_AB_bounds_DKW}}.
+#' @param labels (optional, c("X'_A","X'_B")) a string vector of length 2 with the labels of X_A and X_B, in that order.
 #' @param plotDifference (optional, default=FALSE) plots the difference (X'_A - X'_B) instead of each of the random variables on their own.
 #' @return the ggplot figure object.
 #' @export
@@ -459,9 +460,22 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 #' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
 #' densitiesPlot = plot_X_prima_AB(res)
 #' print(densitiesPlot)
-plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, plotDifference=FALSE) {
+plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X'_A","X'_B"), plotDifference=FALSE) {
   df <- data.frame(matrix(unlist(estimated_X_prima_AB_bounds), nrow=length(estimated_X_prima_AB_bounds$p), byrow=FALSE))
   colnames(df) <- names(estimated_X_prima_AB_bounds)
+
+  if (length(labels) != 2) {
+    print("ERROR: The length of labels shouuld be 2")
+  }
+
+  if (class(labels) != "character") {
+    print("ERROR: Labels needs to be a string vector of size 2. For example, labels=c(\"Algorithm 1\", \"Algorithm 2\")")
+  }
+
+  if (labels[[1]] == labels[[2]]) {
+    print("ERROR: Labels must be different from each other.")
+  }
+
 
   # This annoying hack is necessary to avoid the NOTEs 'about no visible
   # binding for global variable'. This is a known problem with ggplot2, see
@@ -482,26 +496,30 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, plotDifference=FALSE) {
     resPlot = ggplot2::ggplot() +
       ggplot2::xlim(0,1) +
       ggplot2::ylim(-1,1) +
-      ggplot2::geom_ribbon(data = as.data.frame(list("x"=c(0.0,0.5,1.0), "ymax"=c(0.0,1.0,0.0), "ymin"=c(0.0,-1.0,0.0))), ggplot2::aes(x=x, ymin = ymin, ymax = ymax), fill = "#000000", alpha = 0.025) +
-      ggplot2::geom_ribbon(data = diff_plotdf, ggplot2::aes(x=p, ymin = diff_lower, ymax = diff_upper), fill = "#000000", alpha = 0.15) +
+      ggplot2::geom_ribbon(data = as.data.frame(list("x"=c(0.0,0.5,1.0), "ymax"=c(0.0,1.0,0.0), "ymin"=c(0.0,-1.0,0.0))), ggplot2::aes(x=x, ymin = ymin, ymax = ymax), fill = "#000000", alpha = 0.075) +
+      ggplot2::geom_ribbon(data = diff_plotdf, ggplot2::aes(x=p, ymin = diff_lower, ymax = diff_upper), fill = "#000000", alpha = 0.25) +
       ggplot2::geom_line(data = diff_plotdf, ggplot2::aes(x=p, y=diff_estimation), color='black') +
+      ggplot2::annotate("text", x=0.0, y=0.9, label= labels[[1]], color="#000000", hjust = 0) +
+      ggplot2::annotate("text", x=0.0, y=-0.9, label= labels[[2]], color="#000000", hjust = 0) +
       ggplot2::xlab('x') +
       ggplot2::theme_minimal() +
       ggplot2::ylab('difference in cumulative probability')
     return(resPlot)
 
   }else{
+    labelA <- labels[[1]]
+    labelB <- labels[[2]]
     resPlot = ggplot2::ggplot() +
       ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper), fill="#00BFC4",  alpha = 0.15) +
       ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill="#F8766D",  alpha = 0.15) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_estimation, colour = "X'_A", linetype="X'_A")) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_estimation, colour = "X'_B",  linetype ="X'_B")) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_lower, colour = "X'_A", linetype="X'_A"), alpha=0.4) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_upper, colour = "X'_A", linetype="X'_A"), alpha=0.4) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_lower, colour = "X'_B", linetype="X'_B"), alpha=0.4) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_upper, colour = "X'_B", linetype="X'_B"), alpha=0.4) +
-      ggplot2::scale_colour_manual("", breaks = c("X'_A", "X'_B"),  values = c("#00BFC4", "#F8766D")) +
-      ggplot2::scale_linetype_manual("", breaks = c("X'_A", "X'_B"), values = c("solid", "dashed")) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_estimation, colour = labelA, linetype=labelA)) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_estimation, colour = labelB,  linetype =labelB)) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_lower, colour = labelA, linetype=labelA), alpha=0.4) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_upper, colour = labelA, linetype=labelA), alpha=0.4) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_lower, colour = labelB, linetype=labelB), alpha=0.4) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_upper, colour = labelB, linetype=labelB), alpha=0.4) +
+      ggplot2::scale_colour_manual("", breaks = c(labelA, labelB),  values = c("#00BFC4", "#F8766D")) +
+      ggplot2::scale_linetype_manual("", breaks = c(labelA, labelB), values = c("solid", "dashed")) +
       ggplot2::xlab('x') +
       ggplot2::ylab('cumulative probability')
 
