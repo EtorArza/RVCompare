@@ -33,6 +33,13 @@
 #'
 #' - X_prima_B_cumulative_lower: The same as X_prima_A_cumulative_lower for X'_B
 #'
+#' - diff_estimation: X_prima_A_cumulative_estimation - X_prima_B_cumulative_estimation
+#'
+#' - diff_upper: an array with the upper bounds of confidence 1 - alpha of the difference between the cumulative distributions
+#'
+#' - diff_lower: an array with the lower bounds of confidence 1 - alpha of the difference between the cumulative distributions
+#'
+#'
 #' @export
 #' @examples
 #' library(ggplot2)
@@ -49,9 +56,9 @@
 #' }
 #' \dontshow{
 #' # easier on computation for testing.
-#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, nOfBootstrapSamples=1e2)
+#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, nOfBootstrapSamples=1e2, nOfEstimationPoints=20)
 #' }
-#' fig1 = plot_X_prima_AB(res)+ ggplot2::ggtitle("Example 1")
+#' fig1 = plot_X_prima_AB(res, plotDifference=FALSE)+ ggplot2::ggtitle("Example 1")
 #' print(fig1)
 #'
 #'
@@ -81,7 +88,7 @@
 #'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'         data = actualDistributions)$fitted.values
 #'
-#' fig = plot_X_prima_AB(res) +
+#' fig = plot_X_prima_AB(res, plotDifference=FALSE) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
 #' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
@@ -122,7 +129,7 @@
 #'        p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'        data = actualDistributions)$fitted.values
 #'
-#' fig = plot_X_prima_AB(res) +
+#' fig = plot_X_prima_AB(res, plotDifference=FALSE) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
 #' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
@@ -230,6 +237,12 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
   res$X_prima_B_cumulative_upper <- quantiles[3,]
 
 
+  res$diff_estimation <- res$X_prima_A_cumulative_estimation - res$X_prima_B_cumulative_estimation
+  res$diff_upper <- res$X_prima_A_cumulative_upper - res$X_prima_B_cumulative_lower
+  res$diff_lower <- res$X_prima_A_cumulative_lower - res$X_prima_B_cumulative_upper
+
+
+
   return(res)
 
 
@@ -267,6 +280,12 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #'
 #' - X_prima_B_cumulative_lower: The same as X_prima_A_cumulative_lower for X'_B
 #'
+#' - diff_estimation: X_prima_A_cumulative_estimation - X_prima_B_cumulative_estimation
+#'
+#' - diff_upper: an array with the upper bounds of confidence 1 - alpha of the difference between the cumulative distributions
+#'
+#' - diff_lower: an array with the lower bounds of confidence 1 - alpha of the difference between the cumulative distributions
+#'
 #' @export
 #' @examples
 #' library(ggplot2)
@@ -278,7 +297,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #'     0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,
 #'     0.12363,0.132451,0.59217,0.157129,0.13528, 0.145)
 #' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
-#' fig1 = plot_X_prima_AB(res) + ggtitle("Example 1")
+#' fig1 = plot_X_prima_AB(res, plotDifference=FALSE) + ggtitle("Example 1")
 #' print(fig1)
 #'
 #' \donttest{
@@ -304,7 +323,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'         data = actualDistributions)$fitted.values
 #'
-#' fig = plot_X_prima_AB(res) +
+#' fig = plot_X_prima_AB(res, plotDifference=FALSE) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
 #' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
@@ -341,7 +360,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'         data = actualDistributions)$fitted.values
 #'
-#' fig = plot_X_prima_AB(res) +
+#' fig = plot_X_prima_AB(res, plotDifference=FALSE) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
 #' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
@@ -433,6 +452,13 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
   res$X_prima_B_cumulative_lower<- clip_to_0_1_interval(empiricalB - bandSizeB)
   res$X_prima_B_cumulative_upper <- clip_to_0_1_interval(empiricalB + bandSizeB)
 
+
+  res$diff_estimation <- res$X_prima_A_cumulative_estimation - res$X_prima_B_cumulative_estimation
+  res$diff_upper <- res$X_prima_A_cumulative_upper - res$X_prima_B_cumulative_lower
+  res$diff_lower <- res$X_prima_A_cumulative_lower - res$X_prima_B_cumulative_upper
+
+
+
   return(res)
 
 
@@ -441,14 +467,14 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 
 
 
-#' Plot the estimated bounds
+#' Plot the estimated cdf of X'_A and X'_B or their difference
 #'
-#' retunrs a ggplot2 with the estimated bounds
+#' retunrs a ggplot2 with the estimations of  X'_A and X'_B or the difference in cumulative distribution function.
 #'
 #'
 #' @param estimated_X_prima_AB_bounds the bounds estimated with \code{\link{get_X_prima_AB_bounds_bootstrap}} or \code{\link{get_X_prima_AB_bounds_DKW}}.
 #' @param labels (optional, c("X'_A","X'_B")) a string vector of length 2 with the labels of X_A and X_B, in that order.
-#' @param plotDifference (optional, default=FALSE) plots the difference (X'_A - X'_B) instead of each of the random variables on their own.
+#' @param plotDifference (optional, default=TRUE) plots the difference (X'_A - X'_B) instead of each of the random variables on their own.
 #' @return the ggplot figure object.
 #' @export
 #' @import ggplot2
@@ -458,9 +484,9 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 #' X_A_observed <- rnorm(800,mean = 1, sd = 1)
 #' X_B_observed <- rnorm(800,mean = 1.3, sd = 0.5)
 #' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
-#' densitiesPlot = plot_X_prima_AB(res)
+#' densitiesPlot = plot_X_prima_AB(res, plotDifference=TRUE)
 #' print(densitiesPlot)
-plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X'_A","X'_B"), plotDifference=FALSE) {
+plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X'_A","X'_B"), plotDifference=TRUE) {
   df <- data.frame(matrix(unlist(estimated_X_prima_AB_bounds), nrow=length(estimated_X_prima_AB_bounds$p), byrow=FALSE))
   colnames(df) <- names(estimated_X_prima_AB_bounds)
 

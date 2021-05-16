@@ -2,12 +2,12 @@
 % Please edit documentation in R/RVCompare.R
 \name{plot_X_prima_AB}
 \alias{plot_X_prima_AB}
-\title{Plot the estimated bounds}
+\title{Plot the estimated cdf of X'_A and X'_B or their difference}
 \usage{
 plot_X_prima_AB(
   estimated_X_prima_AB_bounds,
   labels = c("X'_A", "X'_B"),
-  plotDifference = FALSE
+  plotDifference = TRUE
 )
 }
 \arguments{
@@ -15,13 +15,13 @@ plot_X_prima_AB(
 
 \item{labels}{(optional, c("X'_A","X'_B")) a string vector of length 2 with the labels of X_A and X_B, in that order.}
 
-\item{plotDifference}{(optional, default=FALSE) plots the difference (X'_A - X'_B) instead of each of the random variables on their own.}
+\item{plotDifference}{(optional, default=TRUE) plots the difference (X'_A - X'_B) instead of each of the random variables on their own.}
 }
 \value{
 the ggplot figure object.
 }
 \description{
-retunrs a ggplot2 with the estimated bounds
+retunrs a ggplot2 with the estimations of  X'_A and X'_B or the difference in cumulative distribution function.
 }
 \examples{
 ### Example 1 ###
@@ -29,6 +29,6 @@ retunrs a ggplot2 with the estimated bounds
 X_A_observed <- rnorm(800,mean = 1, sd = 1)
 X_B_observed <- rnorm(800,mean = 1.3, sd = 0.5)
 res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
-densitiesPlot = plot_X_prima_AB(res)
+densitiesPlot = plot_X_prima_AB(res, plotDifference=TRUE)
 print(densitiesPlot)
 }

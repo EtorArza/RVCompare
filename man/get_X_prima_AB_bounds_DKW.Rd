@@ -39,6 +39,12 @@ Returns a list with the following fields:
 - X_prima_B_cumulative_upper: The same as X_prima_A_cumulative_upper for X'_B
 
 - X_prima_B_cumulative_lower: The same as X_prima_A_cumulative_lower for X'_B
+
+- diff_estimation: X_prima_A_cumulative_estimation - X_prima_B_cumulative_estimation
+
+- diff_upper: an array with the upper bounds of confidence 1 - alpha of the difference between the cumulative distributions
+
+- diff_lower: an array with the lower bounds of confidence 1 - alpha of the difference between the cumulative distributions
 }
 \description{
 Estimate the confidence intervals for the cumulative distributions of X'_A and X'_B with Dvoretzky–Kiefer–Wolfowitz.
@@ -53,7 +59,7 @@ X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,
     0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,
     0.12363,0.132451,0.59217,0.157129,0.13528, 0.145)
 res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
-fig1 = plot_X_prima_AB(res) + ggtitle("Example 1")
+fig1 = plot_X_prima_AB(res, plotDifference=FALSE) + ggtitle("Example 1")
 print(fig1)
 
 \donttest{
@@ -79,7 +85,7 @@ actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_e
         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
         data = actualDistributions)$fitted.values
 
-fig = plot_X_prima_AB(res) +
+fig = plot_X_prima_AB(res, plotDifference=FALSE) +
 
 geom_line(data=as.data.frame(actualDistributions),
 aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
@@ -116,7 +122,7 @@ actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_e
         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
         data = actualDistributions)$fitted.values
 
-fig = plot_X_prima_AB(res) +
+fig = plot_X_prima_AB(res, plotDifference=FALSE) +
 
 geom_line(data=as.data.frame(actualDistributions),
 aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
