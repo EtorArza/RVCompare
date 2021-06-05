@@ -16,7 +16,7 @@
 #' @param alpha (optional, default value 0.2) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
 #' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
 #' @param nOfBootstrapSamples (optional, default value 1e3) how many bootstrap samples to average. Increases computation time.
-#' @param ignoreUniqueValuesCheck (optional, default value FALSE)
+#' @param ignoreMinimumLengthCheck (optional, default value FALSE) wether to check for a minimum length in X_A and X_B.
 #' @return Returns a list with the following fields:
 #'
 #' - p: values in the interval [0,1] that represent the nOfEstimationPoints points in which the densities are estimated. Useful for plotting.
@@ -161,14 +161,14 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 
   if(!ignoreUniqueValuesCheck)
   {
-  if(!xHasEnoughDiffValues(X_A_observed, EPSILON, 20)) {
+  if(!xHasEnoughValues(X_A_observed, EPSILON, 20)) {
     print("ERROR: X_A_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
     print("Try reducing EPSILON or obtaining additional samples.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
     return(NULL)
   }
 
-  if(!xHasEnoughDiffValues(X_B_observed, EPSILON, 20)) {
+  if(!xHasEnoughValues(X_B_observed, EPSILON, 20)) {
     print("ERROR: X_B_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
     print("Try reducing EPSILON or obtaining additional samples.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
@@ -394,14 +394,14 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 
   if(!ignoreUniqueValuesCheck)
   {
-  if(!xHasEnoughDiffValues(X_A_observed, EPSILON, 20)) {
+  if(!xHasEnoughValues(X_A_observed, EPSILON, 20)) {
     print("ERROR: X_A_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
     print("Try reducing EPSILON or obtaining additional samples.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
     return(NULL)
   }
 
-  if(!xHasEnoughDiffValues(X_B_observed, EPSILON, 20)) {
+  if(!xHasEnoughValues(X_B_observed, EPSILON, 20)) {
     print("ERROR: X_B_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
     print("Try reducing EPSILON or obtaining additional samples.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
@@ -934,29 +934,20 @@ isFunctionDensity <- function(f, xlims, tol=1e-3) {
 
 #' Check for enough unique values.
 #'
-#' This function checks if there are at least minRequiredDiffValues unique
+#' This function checks if there are at least minRequiredValues
 #' values in the introduced vector.
 #'
 #'
 #'
 #' @param X the array with the values.
-#' @param EPSILON when will two values be considered different.
-#' @param minRequiredDiffValues the minimum number of different values required to return TRUE.
+#' @param minRequiredValues the minimum number values required to return TRUE.
 #' @return Returns TRUE if the values are OK. FALSE, if there are not enough unique values.
 #' @export
-#' @examples xHasEnoughDiffValues(c(1,2,2,3,1,5,8,9,67,8.5,4,8.3), 1e-9, 6)
-xHasEnoughDiffValues <- function(X, EPSILON, minRequiredDiffValues) {
+#' @examples xHasEnoughValues(c(1,2,2,3,1,5,8,9,67,8.5,4,8.3), 6)
+xHasEnoughValues <- function(X, minRequiredValues) {
   sortedX <- sort(X)
 
-  nDiff <- 0
-  for (i in 1:(length(sortedX)-1)) {
-    if( abs(sortedX[[i]] - sortedX[[i+1]]) > EPSILON )
-    {
-      nDiff = nDiff + 1
-    }
-  }
-
-  return( nDiff >= minRequiredDiffValues)
+    return( length(X) >= minRequiredDiffValues)
 
 }
 

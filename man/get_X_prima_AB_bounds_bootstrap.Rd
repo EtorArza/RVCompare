@@ -27,7 +27,7 @@ get_X_prima_AB_bounds_bootstrap(
 
 \item{nOfBootstrapSamples}{(optional, default value 1e3) how many bootstrap samples to average. Increases computation time.}
 
-\item{ignoreUniqueValuesCheck}{(optional, default value FALSE)}
+\item{ignoreMinimumLengthCheck}{(optional, default value FALSE) wether to check for a minimum length in X_A and X_B.}
 }
 \value{
 Returns a list with the following fields:
