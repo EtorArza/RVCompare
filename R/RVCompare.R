@@ -947,7 +947,7 @@ isFunctionDensity <- function(f, xlims, tol=1e-3) {
 xHasEnoughValues <- function(X, minRequiredValues) {
   sortedX <- sort(X)
 
-    return( length(X) >= minRequiredDiffValues)
+    return( length(X) >= minRequiredValues)
 
 }
 
