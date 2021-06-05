@@ -159,6 +159,8 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
     return(NULL)
   }
 
+  if(!ignoreUniqueValuesCheck)
+  {
   if(!xHasEnoughDiffValues(X_A_observed, EPSILON, 20)) {
     print("ERROR: X_A_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
     print("Try reducing EPSILON or obtaining additional samples.")
@@ -172,7 +174,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
     return(NULL)
   }
-
+  }
 
 
   n <- length(X_A_observed)
@@ -390,7 +392,8 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
     return(NULL)
   }
 
-
+  if(!ignoreUniqueValuesCheck)
+  {
   if(!xHasEnoughDiffValues(X_A_observed, EPSILON, 20)) {
     print("ERROR: X_A_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
     print("Try reducing EPSILON or obtaining additional samples.")
@@ -403,8 +406,8 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
     print("Try reducing EPSILON or obtaining additional samples.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
     return(NULL)
-}
-
+  }
+  }
 
   alpha_new <- 1 - sqrt(1-alpha)
 
@@ -473,7 +476,7 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 #'
 #'
 #' @param estimated_X_prima_AB_bounds the bounds estimated with \code{\link{get_X_prima_AB_bounds_bootstrap}} or \code{\link{get_X_prima_AB_bounds_DKW}}.
-#' @param labels (optional, c("X'_A","X'_B")) a string vector of length 2 with the labels of X_A and X_B, in that order.
+#' @param labels (optional, default=c("X_A","X_B")) a string vector of length 2 with the labels of X_A and X_B, in that order.
 #' @param plotDifference (optional, default=TRUE) plots the difference (X'_A - X'_B) instead of each of the random variables on their own.
 #' @return the ggplot figure object.
 #' @export
@@ -486,7 +489,7 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 #' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
 #' densitiesPlot = plot_X_prima_AB(res, plotDifference=TRUE)
 #' print(densitiesPlot)
-plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X'_A","X'_B"), plotDifference=TRUE) {
+plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), plotDifference=TRUE) {
   df <- data.frame(matrix(unlist(estimated_X_prima_AB_bounds), nrow=length(estimated_X_prima_AB_bounds$p), byrow=FALSE))
   colnames(df) <- names(estimated_X_prima_AB_bounds)
 
@@ -1199,7 +1202,6 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
   all_values = c(X_A_observed, X_B_observed)
 
   order = order(all_values)
-  order_original <- order
   inv_order = array(data=0, dim = length(all_values))
 
   for (i in 1:length(order)) {
@@ -1208,7 +1210,7 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
 
 
   n_repeated <- 0
-  for (i in 1:(length(order_original)-1)) {
+  for (i in 1:(length(order)-1)) {
     if (abs(all_values[[order[[i]]]] - all_values[[order[[i+1]]]]) < EPSILON) {
       inv_order[[order[[i+1]]]] = inv_order[[order[[i]]]]
       n_repeated = n_repeated + 1
@@ -1231,22 +1233,38 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
   tabRanksA <- table(factor(ranksA, levels=0:max_rank))
   tabRanksB <- table(factor(ranksB, levels=0:max_rank))
 
-  newRanksA <- c()
-  newRanksB <- c()
+  newRanksA <- n * lcm_on_number_of_repeated_ranks
+  newRanksB <- m * lcm_on_number_of_repeated_ranks
 
   current_rank <- 0
+  currewnt_pos_A <- 1
+  currewnt_pos_B <- 1
   for (rank in 0:max_rank) {
-    interval_length <- tabRanksAll[toString(rank)]
 
-    nAddNewRanksA <- lcm_on_number_of_repeated_ranks / tabRanksAll[toString(rank)] * tabRanksA[toString(rank)]
-    nAddNewRanksB <- lcm_on_number_of_repeated_ranks / tabRanksAll[toString(rank)] * tabRanksB[toString(rank)]
+    rank_string <- toString(rank)
 
-    newRanksA <- c(newRanksA, sort(rep(current_rank:(current_rank+interval_length-1), nAddNewRanksA)))
-    newRanksB <- c(newRanksB, sort(rep(current_rank:(current_rank+interval_length-1), nAddNewRanksB)))
+    interval_length <- tabRanksAll[[rank_string]]
+
+    nAddNewRanksA <- lcm_on_number_of_repeated_ranks / tabRanksAll[[rank_string]] * tabRanksA[[rank_string]]
+    nAddNewRanksB <- lcm_on_number_of_repeated_ranks / tabRanksAll[[rank_string]] * tabRanksB[[rank_string]]
+
+
+    if(nAddNewRanksA > 0)
+    {
+      nPosWittenInNewRanksA <- nAddNewRanksA*interval_length
+      newRanksA[currewnt_pos_A:(currewnt_pos_A + nPosWittenInNewRanksA - 1)] <- rep(current_rank:(current_rank+interval_length-1), nAddNewRanksA)
+      currewnt_pos_A = currewnt_pos_A + nPosWittenInNewRanksA
+    }
+
+    if(nAddNewRanksB > 0)
+    {
+      nPosWittenInNewRanksB <- nAddNewRanksB*interval_length
+      newRanksB[currewnt_pos_B:(currewnt_pos_B + nPosWittenInNewRanksB - 1)] <- rep(current_rank:(current_rank+interval_length-1), nAddNewRanksB)
+      currewnt_pos_B = currewnt_pos_B + nPosWittenInNewRanksB
+    }
+
     current_rank = current_rank + interval_length
   }
-
-
 
 
   # ranksOfObserved(c(0.1,0.2,0.5), c(0.2,0.4,0.5))
@@ -1259,7 +1277,7 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
   # # explanation -> we need the slope two be half when two ranks are shared in both positions.
   # thus, we duplicate the slope in the rest of the positions. What about 2 reps in A and 3 in B shared?
 
-  return(list("X_A_ranks"=newRanksA, "X_B_ranks"=newRanksB, "r_max"= max(c(newRanksA,newRanksB))))
+  return(list("X_A_ranks"=sort(newRanksA, method="radix"), "X_B_ranks"=sort(newRanksB, method="radix"), "r_max"= max(c(newRanksA,newRanksB))))
 }
 
 
@@ -1293,7 +1311,7 @@ lowestCommonMultiple <- function(integerArray) {
   for (value in uniueIntegerArray) {
     res <- pracma::Lcm(res, value)
   }
-  return(res)
+  return(as.numeric(res))
 }
 
 
@@ -1419,53 +1437,124 @@ helperTrapezoidRule <- function(densitiesVec) {
 helper_from_ranks_to_integrable_values <- function(sortedRanks, r_max, j_max) {
 
 
-  j_vec = array(0, dim=j_max+1)
+cppFunction(
+'NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVector sortedRanks, int r_max, int j_max)
+{
+  int len = sortedRanks.length();
+  NumericVector j_vec(j_max +1);
 
-  last_biggest_index <- 0
-  n_times_last <- 0
-  last_k_index <- 1
-  # j goes from 0 to j_max
-  for (j in 0:j_max) {
-    p_corresponding_to_j <- j / j_max
+  int last_biggest_index = 0;
+  int n_times_last = 0;
+  int last_k_index = 1;
 
-    biggest_rank_that_has_a_lower_pos_than_j_in_p_terms <- -1
-    k_was_updated <- FALSE
-    for (k in last_biggest_index:r_max) {
-      if (k / (r_max+1) <= p_corresponding_to_j) {
-        biggest_rank_that_has_a_lower_pos_than_j_in_p_terms <- k
-        k_was_updated <- TRUE
+  double p_corresponding_to_j;
+  int biggest_rank_that_has_a_lower_pos_than_j_in_p_terms;
+  bool k_was_updated;
+  int n_times = 0;
+  bool first_k_index_not_found;
+
+  // j goes from 0 to j_max
+  for (int j = 0; j <= j_max; j++)
+  {
+    p_corresponding_to_j = (double) j / (double) j_max;
+    biggest_rank_that_has_a_lower_pos_than_j_in_p_terms = -1;
+    k_was_updated = false;
+    for (int k = last_biggest_index; k <= r_max; k++)
+    {
+      if ((double) k / (double) (r_max+1) <= p_corresponding_to_j) {
+        biggest_rank_that_has_a_lower_pos_than_j_in_p_terms = k;
+        k_was_updated = true;
       }else{
-        last_biggest_index <- biggest_rank_that_has_a_lower_pos_than_j_in_p_terms
-        break
+        last_biggest_index = biggest_rank_that_has_a_lower_pos_than_j_in_p_terms;
+        break;
       }
     }
 
-    n_times <- 0
+    n_times = 0;
 
     if (!k_was_updated) {
-      n_times <- n_times_last
-    }else{
-      first_k_index_not_found <- TRUE
-      for (k_index in last_k_index:length(sortedRanks)) {
-        if (sortedRanks[[k_index]] == biggest_rank_that_has_a_lower_pos_than_j_in_p_terms) {
+      n_times = n_times_last;
+    }
+    else
+    {
+      first_k_index_not_found = true;
+      for (int k_index = last_k_index; k_index <= sortedRanks.length(); k_index++)
+      {
+        if (sortedRanks[k_index - 1] == biggest_rank_that_has_a_lower_pos_than_j_in_p_terms)
+        {
           if(first_k_index_not_found)
           {
-            last_k_index <- k_index
-            first_k_index_not_found <- FALSE
+            last_k_index = k_index;
+            first_k_index_not_found = false;
           }
-          n_times = n_times + 1
-        }else if(!first_k_index_not_found){
-          break
+          n_times = n_times + 1;
+        }
+        else if(!first_k_index_not_found)
+        {
+          break;
         }
       }
     }
-    j_vec[[j+1]] <- n_times
-    n_times_last <- n_times
+    j_vec[j] = n_times;
+    n_times_last = n_times;
   }
 
-  #since the integral needs to be 1, we need that sum_{j=0:(j_max-1)}(density in p_j * interval_length) = 1, where p_j = p[[j+1]].
+  return(j_vec);
+}')
+
+
+
+  # j_vec = array(0, dim=j_max+1)
+  #
+  # last_biggest_index <- 0
+  # n_times_last <- 0
+  # last_k_index <- 1
+  # # j goes from 0 to j_max
+  # for (j in 0:j_max) {
+  #   p_corresponding_to_j <- j / j_max
+  #
+  #   biggest_rank_that_has_a_lower_pos_than_j_in_p_terms <- -1
+  #   k_was_updated <- FALSE
+  #   for (k in last_biggest_index:r_max) {
+  #     if (k / (r_max+1) <= p_corresponding_to_j) {
+  #       biggest_rank_that_has_a_lower_pos_than_j_in_p_terms <- k
+  #       k_was_updated <- TRUE
+  #     }else{
+  #       last_biggest_index <- biggest_rank_that_has_a_lower_pos_than_j_in_p_terms
+  #       break
+  #     }
+  #   }
+  #
+  #   n_times <- 0
+  #
+  #   if (!k_was_updated) {
+  #     n_times <- n_times_last
+  #   }else{
+  #     first_k_index_not_found <- TRUE
+  #     for (k_index in last_k_index:length(sortedRanks)) {
+  #       if (sortedRanks[[k_index]] == biggest_rank_that_has_a_lower_pos_than_j_in_p_terms) {
+  #         if(first_k_index_not_found)
+  #         {
+  #           last_k_index <- k_index
+  #           first_k_index_not_found <- FALSE
+  #         }
+  #         n_times = n_times + 1
+  #       }else if(!first_k_index_not_found){
+  #         break
+  #       }
+  #     }
+  #   }
+  #   j_vec[[j+1]] <- n_times
+  #   n_times_last <- n_times
+  # }
+  #
+  # #since the integral needs to be 1, we need that sum_{j=0:(j_max-1)}(density in p_j * interval_length) = 1, where p_j = p[[j+1]].
+  # print(j_vec)
+  j_vec <- cpp_helper_from_ranks_to_integrable_values(sortedRanks, r_max, j_max)
   return(j_vec / utils::tail(helperTrapezoidRule(j_vec),1))
 }
+
+
 
 
 

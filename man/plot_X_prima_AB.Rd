@@ -6,14 +6,14 @@
 \usage{
 plot_X_prima_AB(
   estimated_X_prima_AB_bounds,
-  labels = c("X'_A", "X'_B"),
+  labels = c("X_A", "X_B"),
   plotDifference = TRUE
 )
 }
 \arguments{
 \item{estimated_X_prima_AB_bounds}{the bounds estimated with \code{\link{get_X_prima_AB_bounds_bootstrap}} or \code{\link{get_X_prima_AB_bounds_DKW}}.}
 
-\item{labels}{(optional, c("X'_A","X'_B")) a string vector of length 2 with the labels of X_A and X_B, in that order.}
+\item{labels}{(optional, default=c("X_A","X_B")) a string vector of length 2 with the labels of X_A and X_B, in that order.}
 
 \item{plotDifference}{(optional, default=TRUE) plots the difference (X'_A - X'_B) instead of each of the random variables on their own.}
 }
