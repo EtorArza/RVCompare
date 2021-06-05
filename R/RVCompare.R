@@ -1399,6 +1399,7 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' @param r_max The largest rank.
 #' @param j_max the largest index that will be used. its value is nDatapointsWhereDensityEstimated-1
 #' @keywords internal
+#' @import Rcpp
 #' @examples
 #' ### Example 1 ###
 #' j_max <- 12
@@ -1503,53 +1504,7 @@ cppFunction(
 }')
 
 
-
-  # j_vec = array(0, dim=j_max+1)
-  #
-  # last_biggest_index <- 0
-  # n_times_last <- 0
-  # last_k_index <- 1
-  # # j goes from 0 to j_max
-  # for (j in 0:j_max) {
-  #   p_corresponding_to_j <- j / j_max
-  #
-  #   biggest_rank_that_has_a_lower_pos_than_j_in_p_terms <- -1
-  #   k_was_updated <- FALSE
-  #   for (k in last_biggest_index:r_max) {
-  #     if (k / (r_max+1) <= p_corresponding_to_j) {
-  #       biggest_rank_that_has_a_lower_pos_than_j_in_p_terms <- k
-  #       k_was_updated <- TRUE
-  #     }else{
-  #       last_biggest_index <- biggest_rank_that_has_a_lower_pos_than_j_in_p_terms
-  #       break
-  #     }
-  #   }
-  #
-  #   n_times <- 0
-  #
-  #   if (!k_was_updated) {
-  #     n_times <- n_times_last
-  #   }else{
-  #     first_k_index_not_found <- TRUE
-  #     for (k_index in last_k_index:length(sortedRanks)) {
-  #       if (sortedRanks[[k_index]] == biggest_rank_that_has_a_lower_pos_than_j_in_p_terms) {
-  #         if(first_k_index_not_found)
-  #         {
-  #           last_k_index <- k_index
-  #           first_k_index_not_found <- FALSE
-  #         }
-  #         n_times = n_times + 1
-  #       }else if(!first_k_index_not_found){
-  #         break
-  #       }
-  #     }
-  #   }
-  #   j_vec[[j+1]] <- n_times
-  #   n_times_last <- n_times
-  # }
-  #
-  # #since the integral needs to be 1, we need that sum_{j=0:(j_max-1)}(density in p_j * interval_length) = 1, where p_j = p[[j+1]].
-  # print(j_vec)
+  # since the integral needs to be 1, we need that sum_{j=0:(j_max-1)}(density in p_j * interval_length) = 1, where p_j = p[[j+1]].
   j_vec <- cpp_helper_from_ranks_to_integrable_values(sortedRanks, r_max, j_max)
   return(j_vec / utils::tail(helperTrapezoidRule(j_vec),1))
 }
