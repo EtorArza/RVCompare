@@ -161,16 +161,16 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 
   if(!ignoreUniqueValuesCheck)
   {
-  if(!xHasEnoughValues(X_A_observed, EPSILON, 20)) {
-    print("ERROR: X_A_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
-    print("Try reducing EPSILON or obtaining additional samples.")
+  if(!xHasEnoughValues(X_A_observed, 100)) {
+    print("ERROR: X_A_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
+    print("At least 100 samples are required.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
     return(NULL)
   }
 
-  if(!xHasEnoughValues(X_B_observed, EPSILON, 20)) {
-    print("ERROR: X_B_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
-    print("Try reducing EPSILON or obtaining additional samples.")
+  if(!xHasEnoughValues(X_B_observed, 100)) {
+    print("ERROR: X_B_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
+    print("At least 100 samples are required.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
     return(NULL)
   }
@@ -394,16 +394,16 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 
   if(!ignoreUniqueValuesCheck)
   {
-  if(!xHasEnoughValues(X_A_observed, EPSILON, 20)) {
-    print("ERROR: X_A_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
-    print("Try reducing EPSILON or obtaining additional samples.")
+  if(!xHasEnoughValues(X_A_observed, 100)) {
+    print("ERROR: X_A_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
+    print("At least 100 samples are required.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
     return(NULL)
   }
 
-  if(!xHasEnoughValues(X_B_observed, EPSILON, 20)) {
-    print("ERROR: X_B_observed does not have enough unique values. This means that the confidence intervals cannot be accurately computed.")
-    print("Try reducing EPSILON or obtaining additional samples.")
+  if(!xHasEnoughValues(X_B_observed, 100)) {
+    print("ERROR: X_B_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
+    print("At least 100 samples are required.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
     return(NULL)
   }
