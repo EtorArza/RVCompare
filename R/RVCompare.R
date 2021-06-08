@@ -147,7 +147,7 @@
 #' print(fig)
 #' }
 #'
-get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreUniqueValuesCheck=FALSE) {
+get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreValuesCheck=FALSE) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
@@ -159,19 +159,19 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
     return(NULL)
   }
 
-  if(!ignoreUniqueValuesCheck)
+  if(!ignoreValuesCheck)
   {
   if(!xHasEnoughValues(X_A_observed, 100)) {
     print("ERROR: X_A_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
-    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreValuesCheck = TRUE (not recomended!)")
     return(NULL)
   }
 
   if(!xHasEnoughValues(X_B_observed, 100)) {
     print("ERROR: X_B_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
-    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreValuesCheck = TRUE (not recomended!)")
     return(NULL)
   }
   }
@@ -240,15 +240,11 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 
 
   res$diff_estimation <- res$X_prima_A_cumulative_estimation - res$X_prima_B_cumulative_estimation
-  res$diff_upper <- res$X_prima_A_cumulative_upper - res$X_prima_B_cumulative_lower
-  res$diff_lower <- res$X_prima_A_cumulative_lower - res$X_prima_B_cumulative_upper
-
+  res$diff_upper <- coerceToDifferenceArea(res$p, res$X_prima_A_cumulative_upper - res$X_prima_B_cumulative_lower)
+  res$diff_lower <- coerceToDifferenceArea(res$p, res$X_prima_A_cumulative_lower - res$X_prima_B_cumulative_upper)
 
 
   return(res)
-
-
-
 }
 
 
@@ -392,19 +388,19 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
     return(NULL)
   }
 
-  if(!ignoreUniqueValuesCheck)
+  if(!ignoreValuesCheck)
   {
   if(!xHasEnoughValues(X_A_observed, 100)) {
     print("ERROR: X_A_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
-    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreValuesCheck = TRUE (not recomended!)")
     return(NULL)
   }
 
   if(!xHasEnoughValues(X_B_observed, 100)) {
     print("ERROR: X_B_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
-    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreUniqueValuesCheck = TRUE (not recomended!)")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreValuesCheck = TRUE (not recomended!)")
     return(NULL)
   }
   }
@@ -457,8 +453,8 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 
 
   res$diff_estimation <- res$X_prima_A_cumulative_estimation - res$X_prima_B_cumulative_estimation
-  res$diff_upper <- res$X_prima_A_cumulative_upper - res$X_prima_B_cumulative_lower
-  res$diff_lower <- res$X_prima_A_cumulative_lower - res$X_prima_B_cumulative_upper
+  res$diff_upper <- coerceToDifferenceArea(res$X_prima_A_cumulative_upper - res$X_prima_B_cumulative_lower, res$p)
+  res$diff_lower <- coerceToDifferenceArea(res$X_prima_A_cumulative_lower - res$X_prima_B_cumulative_upper, res$p)
 
 
 
@@ -516,16 +512,16 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), 
   x <- ymin <- ymax <- NULL
 
   if (plotDifference) {
-    diff_estimation <- estimated_X_prima_AB_bounds$X_prima_A_cumulative_estimation - estimated_X_prima_AB_bounds$X_prima_B_cumulative_estimation
-    diff_upper <- estimated_X_prima_AB_bounds$X_prima_A_cumulative_upper - estimated_X_prima_AB_bounds$X_prima_B_cumulative_lower
-    diff_lower <- estimated_X_prima_AB_bounds$X_prima_A_cumulative_lower - estimated_X_prima_AB_bounds$X_prima_B_cumulative_upper
+    diff_estimation <- estimated_X_prima_AB_bounds$diff_estimation
+    diff_upper <- estimated_X_prima_AB_bounds$diff_upper
+    diff_lower <- estimated_X_prima_AB_bounds$diff_lower
     p <- estimated_X_prima_AB_bounds$p
     diff_plotdf <- data.frame(p, diff_estimation, diff_lower, diff_upper)
 
     resPlot = ggplot2::ggplot() +
       ggplot2::xlim(0,1) +
       ggplot2::ylim(-1,1) +
-      ggplot2::geom_ribbon(data = as.data.frame(list("x"=c(0.0,0.5,1.0), "ymax"=c(0.0,1.0,0.0), "ymin"=c(0.0,-1.0,0.0))), ggplot2::aes(x=x, ymin = ymin, ymax = ymax), fill = "#000000", alpha = 0.075) +
+      ggplot2::geom_ribbon(data = as.data.frame(list("x"=c(0.0,0.5,1.0), "ymax"=c(0.0,1.0,0.0), "ymin"=c(0.0,-1.0,0.0))), ggplot2::aes(x=x, ymin = ymin, ymax = ymax), fill = "#33ccff", alpha = 0.2) +
       ggplot2::geom_ribbon(data = diff_plotdf, ggplot2::aes(x=p, ymin = diff_lower, ymax = diff_upper), fill = "#000000", alpha = 0.25) +
       ggplot2::geom_line(data = diff_plotdf, ggplot2::aes(x=p, y=diff_estimation), color='black') +
       ggplot2::annotate("text", x=0.0, y=0.9, label= labels[[1]], color="#000000", hjust = 0) +
@@ -549,6 +545,7 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), 
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_upper, colour = labelB, linetype=labelB), alpha=0.4) +
       ggplot2::scale_colour_manual("", breaks = c(labelA, labelB),  values = c("#00BFC4", "#F8766D")) +
       ggplot2::scale_linetype_manual("", breaks = c(labelA, labelB), values = c("solid", "dashed")) +
+      ggplot2::theme_minimal() +
       ggplot2::xlab('x') +
       ggplot2::ylab('cumulative probability')
 
@@ -932,7 +929,7 @@ isFunctionDensity <- function(f, xlims, tol=1e-3) {
 }
 
 
-#' Check for enough unique values.
+#' Check for enough values.
 #'
 #' This function checks if there are at least minRequiredValues
 #' values in the introduced vector.
@@ -941,7 +938,7 @@ isFunctionDensity <- function(f, xlims, tol=1e-3) {
 #'
 #' @param X the array with the values.
 #' @param minRequiredValues the minimum number values required to return TRUE.
-#' @return Returns TRUE if the values are OK. FALSE, if there are not enough unique values.
+#' @return Returns TRUE if the values are OK. FALSE, if there are not enough values.
 #' @export
 #' @examples xHasEnoughValues(c(1,2,2,3,1,5,8,9,67,8.5,4,8.3), 6)
 xHasEnoughValues <- function(X, minRequiredValues) {
@@ -1106,6 +1103,27 @@ sampleFromDensity <- function(density, nSamples, xlims, nIntervals=1e5) {
 
 ################## Internal functions ##################
 
+
+#' Coerce values to the square in the diffference graph
+#' @param p the x values.
+#' @param v the values ot be corrected.
+#' @keywords internal
+#' @return vector with the v values corrected
+coerceToDifferenceArea <- function(p, v) {
+
+  v_new <- v
+
+  for (i in 1:length(p)) {
+    v_new[[i]] <- min(v_new[[i]], 2*p[[i]])
+    v_new[[i]] <- min(v_new[[i]], 2 - 2*p[[i]])
+    v_new[[i]] <- max(v_new[[i]], -2*p[[i]])
+    v_new[[i]] <- max(v_new[[i]], -2 + 2*p[[i]])
+  }
+  return(v_new)
+}
+
+
+
 #' Check if xlims is a tuple that represents a valid bounded interval in the real space.
 #' @param xlims the tuple to be checked.
 #' @return TRUE if it is a valid tuple. Otherwise prints error mesage and returns FALSE
@@ -1179,11 +1197,11 @@ cumulativeFromDensity <- function(densityX, xlims, sanityChecks = TRUE) {
   )
 }
 
-#' Get the ranks from the values of observed X_A and X_B. Ranks go from 0 to r_max, where r_max is the number of unique values in c(X_A_observed, X_B_observed)
+#' Get the ranks from the values of observed X_A and X_B. Ranks go from 0 to r_max, where r_max is the number of values in c(X_A_observed, X_B_observed)
 #' @param X_A_observed array of the samples (real values) of X_A.
 #' @param X_B_observed array of the samples (real values) of X_B.
 #' @param EPSILON (optional, default value 1e-20) when will two values be different.
-#' @return a list with three fields: X_A_ranks, X_B_ranks and r_max (the number of unique values minus 1).
+#' @return a list with three fields: X_A_ranks, X_B_ranks and r_max (the number of values minus 1).
 #' @keywords internal
 ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
 
