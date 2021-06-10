@@ -11,7 +11,7 @@ get_X_prima_AB_bounds_bootstrap(
   alpha = 0.2,
   EPSILON = 1e-20,
   nOfBootstrapSamples = 1000,
-  ignoreUniqueValuesCheck = FALSE
+  ignoreValuesCheck = FALSE
 )
 }
 \arguments{

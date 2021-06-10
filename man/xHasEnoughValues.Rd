@@ -2,7 +2,7 @@
 % Please edit documentation in R/RVCompare.R
 \name{xHasEnoughValues}
 \alias{xHasEnoughValues}
-\title{Check for enough unique values.}
+\title{Check for enough values.}
 \usage{
 xHasEnoughValues(X, minRequiredValues)
 }
@@ -12,7 +12,7 @@ xHasEnoughValues(X, minRequiredValues)
 \item{minRequiredValues}{the minimum number values required to return TRUE.}
 }
 \value{
-Returns TRUE if the values are OK. FALSE, if there are not enough unique values.
+Returns TRUE if the values are OK. FALSE, if there are not enough values.
 }
 \description{
 This function checks if there are at least minRequiredValues

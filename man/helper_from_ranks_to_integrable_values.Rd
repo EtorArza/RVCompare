@@ -4,14 +4,19 @@
 \alias{helper_from_ranks_to_integrable_values}
 \title{Helper function for get_X_prima_AB_bounds_bootstrap.}
 \usage{
-helper_from_ranks_to_integrable_values(sortedRanks, r_max, j_max)
+helper_from_ranks_to_integrable_values(
+  rank_interval_mult,
+  rank_interval_lengths,
+  r_max,
+  j_max
+)
 }
 \arguments{
-\item{sortedRanks}{the sorted ranks of either the observed X_A or X_B.}
-
 \item{r_max}{The largest rank.}
 
 \item{j_max}{the largest index that will be used. its value is nDatapointsWhereDensityEstimated-1}
+
+\item{sortedRanks}{the sorted ranks of either the observed X_A or X_B.}
 }
 \value{
 the probability density in this point
@@ -23,9 +28,10 @@ The density corresponding to the position in index j is computed, given the SORT
 ### Example 1 ###
 j_max <- 12
 r_max <- 6
-sortedRanks <- c(0,0,0,0,1,1,1,1,1,1,1,3,4)
+rank_interval_mult <- c(4,7,0,1,0)
+rank_interval_lengths <- c(1,1,1,2,2)
 densities <- helper_from_ranks_to_integrable_values(
-             sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+             rank_interval_mult=rank_interval_mult, rank_interval_lengths=rank_interval_lengths, r_max=r_max, j_max=j_max)
 plot(x = 0:j_max / j_max, y = densities, type="l")
 # 0.9347826 0.9782609 1.0000000 1.0000000 1.0000000 1.0000000
 print(utils::tail(helperTrapezoidRule(densities)))
@@ -34,9 +40,11 @@ plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 ### Example 2 ###
 j_max <- 12
 r_max <- 19
-sortedRanks <- c(0,0,1,1,3,5,6,18,19)
+# sortedRanks <-          c(0,0,1,1,   3,    5, 6,   18, 19)
+rank_interval_mult <-     c(2,      0, 1, 0, 1,   0  ,1 ,1)
+rank_interval_lengths <-  c(2,      1, 1, 1, 2,   11 ,1 ,1)
 densities <- helper_from_ranks_to_integrable_values(
-                                 sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+             rank_interval_mult=rank_interval_mult, rank_interval_lengths=rank_interval_lengths, r_max=r_max, j_max=j_max)
 plot(x = 0:j_max / j_max, y = densities, type="l")
 # 0.8000000 0.8000000 0.8000000 0.8000000 0.8666667 1.0000000
 print(utils::tail(helperTrapezoidRule(densities)))
@@ -45,9 +53,11 @@ plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 ### Example 3 ###
 j_max <- 12
 r_max <- 8
-sortedRanks <- c(1,1,3,5,6)
+# sortedRanks <-          c(   1,1,   3,    5, 6)
+rank_interval_mult <-     c(0, 2,  0, 1, 0, 1, 1)
+rank_interval_lengths <-  c(1, 1,  1, 1, 1, 1, 1)
 densities <- helper_from_ranks_to_integrable_values(
-             sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+             rank_interval_mult=rank_interval_mult, rank_interval_lengths=rank_interval_lengths, r_max=r_max, j_max=j_max)
 plot(x = 0:j_max / j_max, y = densities, type="l")
 # 0.6428571 0.7857143 0.9285714 1.0000000 1.0000000 1.0000000
 print(utils::tail(helperTrapezoidRule(densities)))

@@ -2,7 +2,7 @@
 % Please edit documentation in R/RVCompare.R
 \name{ranksOfObserved}
 \alias{ranksOfObserved}
-\title{Get the ranks from the values of observed X_A and X_B. Ranks go from 0 to r_max, where r_max is the number of unique values in c(X_A_observed, X_B_observed)}
+\title{Get the ranks from the values of observed X_A and X_B. Ranks go from 0 to r_max, where r_max is the number of values in c(X_A_observed, X_B_observed)}
 \usage{
 ranksOfObserved(X_A_observed, X_B_observed, EPSILON = 1e-20)
 }
@@ -14,9 +14,9 @@ ranksOfObserved(X_A_observed, X_B_observed, EPSILON = 1e-20)
 \item{EPSILON}{(optional, default value 1e-20) when will two values be different.}
 }
 \value{
-a list with three fields: X_A_ranks, X_B_ranks and r_max (the number of unique values minus 1).
+a list with three fields: X_A_ranks, X_B_ranks and r_max (the number of values minus 1).
 }
 \description{
-Get the ranks from the values of observed X_A and X_B. Ranks go from 0 to r_max, where r_max is the number of unique values in c(X_A_observed, X_B_observed)
+Get the ranks from the values of observed X_A and X_B. Ranks go from 0 to r_max, where r_max is the number of values in c(X_A_observed, X_B_observed)
 }
 \keyword{internal}

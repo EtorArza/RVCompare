@@ -149,6 +149,9 @@
 #'
 get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreValuesCheck=FALSE) {
 
+  print(length(X_A_observed))
+  print(length(X_B_observed))
+
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
     return(NULL)
@@ -202,12 +205,12 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 
     ranksObj <- ranksOfObserved(bootStrapSampleA, bootStrapSampleB, EPSILON)
 
-    X_A_ranks <- sort(ranksObj$X_A_ranks)
-    X_B_ranks <- sort(ranksObj$X_B_ranks)
+
+
     r_max <- ranksObj$r_max
 
-    dataA[i,] <- helper_from_ranks_to_integrable_values(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max)
-    dataB[i,] <- helper_from_ranks_to_integrable_values(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max)
+    dataA[i,] <- helper_from_ranks_to_integrable_values(sortedRanks = ranksObj$X_A_ranks, r_max = r_max, j_max = j_max)
+    dataB[i,] <- helper_from_ranks_to_integrable_values(sortedRanks = ranksObj$X_B_ranks, r_max = r_max, j_max = j_max)
   }
   alpha_new <- 1 - sqrt(1-alpha)
   # matplot(dataA, type = c("l"),pch=1, xlab = "density dataA") #plot
@@ -423,11 +426,7 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
   p <- 0:j_max / j_max # the size of the intervals is 1 / j_max.
 
 
-  ranksObj <- ranksOfObserved(X_A_observed, X_B_observed, EPSILON)
 
-  X_A_ranks <- sort(ranksObj$X_A_ranks)
-  X_B_ranks <- sort(ranksObj$X_B_ranks)
-  r_max <- ranksObj$r_max
 
   res<-getEmpiricalCumulativeDistributions(X_A_observed, X_B_observed, nOfEstimationPoints, EPSILON, trapezoid=FALSE)
 
@@ -1208,6 +1207,11 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
   n = length(X_A_observed)
   m = length(X_B_observed)
 
+  if(n != m)
+  {
+    print("ERROR: the length of X_A_observed and X_B_observed should be the same.")
+  }
+
   all_values = c(X_A_observed, X_B_observed)
 
   order = order(all_values)
@@ -1242,12 +1246,13 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
   tabRanksA <- table(factor(ranksA, levels=0:max_rank))
   tabRanksB <- table(factor(ranksB, levels=0:max_rank))
 
-  newRanksA <- n * lcm_on_number_of_repeated_ranks
-  newRanksB <- m * lcm_on_number_of_repeated_ranks
 
-  current_rank <- 0
-  currewnt_pos_A <- 1
-  currewnt_pos_B <- 1
+  # n = m
+  rank_interval_multA <- numeric(max_rank+1)
+  rank_interval_multB <- numeric(max_rank+1)
+  rank_interval_lengths <- numeric(max_rank+1)
+
+
   for (rank in 0:max_rank) {
 
     rank_string <- toString(rank)
@@ -1258,35 +1263,40 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
     nAddNewRanksB <- lcm_on_number_of_repeated_ranks / tabRanksAll[[rank_string]] * tabRanksB[[rank_string]]
 
 
-    if(nAddNewRanksA > 0)
-    {
-      nPosWittenInNewRanksA <- nAddNewRanksA*interval_length
-      newRanksA[currewnt_pos_A:(currewnt_pos_A + nPosWittenInNewRanksA - 1)] <- rep(current_rank:(current_rank+interval_length-1), nAddNewRanksA)
-      currewnt_pos_A = currewnt_pos_A + nPosWittenInNewRanksA
-    }
+    rank_interval_multA[[rank + 1]] <- nAddNewRanksA
+    rank_interval_multB[[rank + 1]] <- nAddNewRanksB
+    rank_interval_lengths[[rank + 1]] <- interval_length
 
-    if(nAddNewRanksB > 0)
-    {
-      nPosWittenInNewRanksB <- nAddNewRanksB*interval_length
-      newRanksB[currewnt_pos_B:(currewnt_pos_B + nPosWittenInNewRanksB - 1)] <- rep(current_rank:(current_rank+interval_length-1), nAddNewRanksB)
-      currewnt_pos_B = currewnt_pos_B + nPosWittenInNewRanksB
-    }
 
-    current_rank = current_rank + interval_length
   }
 
 
   # ranksOfObserved(c(0.1,0.2,0.5), c(0.2,0.4,0.5))
   # # Desired ouput ->
+  # $rank_interval_multA
+  # [1] 2 1 0 1
+  #
+  # $rank_interval_multB
+  # [1] 0 1 2 1
+  #
+  # $rank_interval_lengths
+  # [1] 1 2 1 2
+  #
+  # $r_max
+  # [1] 5
+
+  # # explanation -> we need the slope two be half when two ranks are shared in both positions.
+  # thus, we duplicate the slope in the rest of the positions.
+  # when many values are repeated memory is wasted, and that is why we encode it as the number of reps
+  # in each case and the 'length' of the interval.
+  # This encoding is supposed to represent the following ranks in this example:
+  #
   # $X_A_ranks
   # [1] 0 0  1 2       4 5
   # $X_B_ranks
   # [1]      1 2  3 3  4 5
 
-  # # explanation -> we need the slope two be half when two ranks are shared in both positions.
-  # thus, we duplicate the slope in the rest of the positions. What about 2 reps in A and 3 in B shared?
-
-  return(list("X_A_ranks"=sort(newRanksA, method="radix"), "X_B_ranks"=sort(newRanksB, method="radix"), "r_max"= max(c(newRanksA,newRanksB))))
+  return(list("rank_interval_multA"=rank_interval_multA, "rank_interval_multB"=rank_interval_multB, "rank_interval_lengths"=rank_interval_lengths, "r_max"= sum(rank_interval_lengths)-1))
 }
 
 
@@ -1413,9 +1423,10 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' ### Example 1 ###
 #' j_max <- 12
 #' r_max <- 6
-#' sortedRanks <- c(0,0,0,0,1,1,1,1,1,1,1,3,4)
+#' rank_interval_mult <- c(4,7,0,1,0)
+#' rank_interval_lengths <- c(1,1,1,2,2)
 #' densities <- helper_from_ranks_to_integrable_values(
-#'              sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#'              rank_interval_mult=rank_interval_mult, rank_interval_lengths=rank_interval_lengths, r_max=r_max, j_max=j_max)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
 #' # 0.9347826 0.9782609 1.0000000 1.0000000 1.0000000 1.0000000
 #' print(utils::tail(helperTrapezoidRule(densities)))
@@ -1424,9 +1435,11 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' ### Example 2 ###
 #' j_max <- 12
 #' r_max <- 19
-#' sortedRanks <- c(0,0,1,1,3,5,6,18,19)
+#' # sortedRanks <-          c(0,0,1,1,   3,    5, 6,   18, 19)
+#' rank_interval_mult <-     c(2,      0, 1, 0, 1,   0  ,1 ,1)
+#' rank_interval_lengths <-  c(2,      1, 1, 1, 2,   11 ,1 ,1)
 #' densities <- helper_from_ranks_to_integrable_values(
-#'                                  sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#'              rank_interval_mult=rank_interval_mult, rank_interval_lengths=rank_interval_lengths, r_max=r_max, j_max=j_max)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
 #' # 0.8000000 0.8000000 0.8000000 0.8000000 0.8666667 1.0000000
 #' print(utils::tail(helperTrapezoidRule(densities)))
@@ -1435,33 +1448,39 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' ### Example 3 ###
 #' j_max <- 12
 #' r_max <- 8
-#' sortedRanks <- c(1,1,3,5,6)
+#' # sortedRanks <-          c(   1,1,   3,    5, 6)
+#' rank_interval_mult <-     c(0, 2,  0, 1, 0, 1, 1)
+#' rank_interval_lengths <-  c(1, 1,  1, 1, 1, 1, 1)
 #' densities <- helper_from_ranks_to_integrable_values(
-#'              sortedRanks=sortedRanks, r_max=r_max, j_max=j_max)
+#'              rank_interval_mult=rank_interval_mult, rank_interval_lengths=rank_interval_lengths, r_max=r_max, j_max=j_max)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
 #' # 0.6428571 0.7857143 0.9285714 1.0000000 1.0000000 1.0000000
 #' print(utils::tail(helperTrapezoidRule(densities)))
 #' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 #' @export
 #' @return the probability density in this point
-helper_from_ranks_to_integrable_values <- function(sortedRanks, r_max, j_max) {
+helper_from_ranks_to_integrable_values <- function(rank_interval_mult, rank_interval_lengths, r_max, j_max) {
 
 
-cppFunction(
-'NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVector sortedRanks, int r_max, int j_max)
+
+cppFunction('NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVector rank_interval_mult, NumericVector rank_interval_lengths_cumsum, int r_max, int j_max)
 {
-  int len = sortedRanks.length();
   NumericVector j_vec(j_max +1);
 
   int last_biggest_index = 0;
   int n_times_last = 0;
-  int last_k_index = 1;
 
   double p_corresponding_to_j;
   int biggest_rank_that_has_a_lower_pos_than_j_in_p_terms;
   bool k_was_updated;
   int n_times = 0;
-  bool first_k_index_not_found;
+
+
+  int index_rank_interval_mul = 0;
+  int rank_interval_mul_lower = 0;
+  int rank_interval_mul_upper = rank_interval_lengths_cumsum[0] - 1; 
+
+
 
   // j goes from 0 to j_max
   for (int j = 0; j <= j_max; j++)
@@ -1469,6 +1488,8 @@ cppFunction(
     p_corresponding_to_j = (double) j / (double) j_max;
     biggest_rank_that_has_a_lower_pos_than_j_in_p_terms = -1;
     k_was_updated = false;
+    
+    // Find which rank corresponds to position j in j_vec 
     for (int k = last_biggest_index; k <= r_max; k++)
     {
       if ((double) k / (double) (r_max+1) <= p_corresponding_to_j) {
@@ -1481,29 +1502,24 @@ cppFunction(
     }
 
     n_times = 0;
+    
+    
 
     if (!k_was_updated) {
       n_times = n_times_last;
     }
-    else
+    else // n_times = count how many times biggest_rank_that_has_a_lower_pos_than_j_in_p_terms is in sortedRanks
     {
-      first_k_index_not_found = true;
-      for (int k_index = last_k_index; k_index <= sortedRanks.length(); k_index++)
+
+    // while biggest_rank_that_has_a_lower_pos_than_j_in_p_terms not in the interval [rank_interval_mul_lower, rank_interval_mul_upper]
+      while (biggest_rank_that_has_a_lower_pos_than_j_in_p_terms < rank_interval_mul_lower ||  biggest_rank_that_has_a_lower_pos_than_j_in_p_terms > rank_interval_mul_upper)
       {
-        if (sortedRanks[k_index - 1] == biggest_rank_that_has_a_lower_pos_than_j_in_p_terms)
-        {
-          if(first_k_index_not_found)
-          {
-            last_k_index = k_index;
-            first_k_index_not_found = false;
-          }
-          n_times = n_times + 1;
-        }
-        else if(!first_k_index_not_found)
-        {
-          break;
-        }
+        index_rank_interval_mul++;
+        rank_interval_mul_lower = rank_interval_lengths_cumsum[index_rank_interval_mul - 1];
+        rank_interval_mul_upper = rank_interval_lengths_cumsum[index_rank_interval_mul] - 1;
       }
+      n_times = rank_interval_mult[index_rank_interval_mul];
+    
     }
     j_vec[j] = n_times;
     n_times_last = n_times;
@@ -1514,7 +1530,7 @@ cppFunction(
 
 
   # since the integral needs to be 1, we need that sum_{j=0:(j_max-1)}(density in p_j * interval_length) = 1, where p_j = p[[j+1]].
-  j_vec <- cpp_helper_from_ranks_to_integrable_values(sortedRanks, r_max, j_max)
+  j_vec <- cpp_helper_from_ranks_to_integrable_values(rank_interval_mult, cumsum(rank_interval_lengths), r_max, j_max)
   return(j_vec / utils::tail(helperTrapezoidRule(j_vec),1))
 }
 
