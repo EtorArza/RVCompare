@@ -523,8 +523,8 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), 
     labelA <- labels[[1]]
     labelB <- labels[[2]]
     resPlot = ggplot2::ggplot() +
-      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper), fill="#00BFC4",  alpha = 0.15) +
-      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper), fill="#F8766D",  alpha = 0.15) +
+      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper, fill=labelA),  alpha = 0.15) +
+      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper, fill=labelB),  alpha = 0.15) +
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_estimation, colour = labelA, linetype=labelA)) +
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_estimation, colour = labelB,  linetype =labelB)) +
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_lower, colour = labelA, linetype=labelA), alpha=0.4) +
@@ -533,6 +533,7 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), 
       ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_upper, colour = labelB, linetype=labelB), alpha=0.4) +
       ggplot2::scale_colour_manual("", breaks = c(labelA, labelB),  values = c("#00BFC4", "#F8766D")) +
       ggplot2::scale_linetype_manual("", breaks = c(labelA, labelB), values = c("solid", "dashed")) +
+      ggplot2::scale_fill_manual("", breaks = c(labelA, labelB),  values = c("#00BFC4", "#F8766D")) +
       ggplot2::theme_minimal() +
       ggplot2::xlab('x') +
       ggplot2::ylab('cumulative probability')
