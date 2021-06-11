@@ -45,12 +45,8 @@
 #' library(ggplot2)
 #'
 #' ### Example 1 ###
-#' X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,
-#'     0.11,2.0,0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,
-#'     0.316,0.1523,0.1297,0.1123,0.139572,0.1937523)
-#' X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,
-#'     0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,
-#'     0.12363,0.132451,0.59217,0.157129,0.13528, 0.145)
+#' X_A_observed <- rnorm(100, mean = 2, sd = 1)
+#' X_B_observed <- rnorm(100, mean = 2.1, sd = 0.5)
 #' \donttest{
 #'  res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 #' }
@@ -66,10 +62,10 @@
 #' ### Example 2 ###
 #' # Comparing the estimations with the actual distributions for two normal distributions.
 #' ###################################
-#' ## sample size = 30 ##############
+#' ## sample size = 100 ##############
 #' ###################################
-#' X_A_observed <- rnorm(30,mean = 1, sd = 1)
-#' X_B_observed <- rnorm(30,mean = 1.3, sd = 0.5)
+#' X_A_observed <- rnorm(100,mean = 1, sd = 1)
+#' X_B_observed <- rnorm(100,mean = 1.3, sd = 0.5)
 #' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 #'
 #' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
@@ -96,13 +92,13 @@
 #' geom_line(data=as.data.frame(actualDistributions),
 #' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
 #'
-#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual X'_A"="#0000FF", "Actual X'_B"="#FF0000"))+
 #'
-#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X_A"="solid", "X_B"="dashed", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
 #'
-#' ggtitle("30 samples used in the estimation")
+#' ggtitle("100 samples used in the estimation")
 #' print(fig)
 #'
 #' ###################################
@@ -137,20 +133,19 @@
 #' geom_line(data=as.data.frame(actualDistributions),
 #' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
 #'
-#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual X'_A"="#0000FF", "Actual X'_B"="#FF0000"))+
 #'
-#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid")) +
+#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X_A"="solid", "X_B"="dashed", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
 #'
 #' ggtitle("300 samples used in the estimation")
 #' print(fig)
 #' }
 #'
-get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreValuesCheck=FALSE) {
+get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreMinimumLengthCheck=FALSE) {
 
-  print(length(X_A_observed))
-  print(length(X_B_observed))
+
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
@@ -162,19 +157,19 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
     return(NULL)
   }
 
-  if(!ignoreValuesCheck)
+  if(!ignoreMinimumLengthCheck)
   {
   if(!xHasEnoughValues(X_A_observed, 100)) {
     print("ERROR: X_A_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
-    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreValuesCheck = TRUE (not recomended!)")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreMinimumLengthCheck = TRUE (not recomended!)")
     return(NULL)
   }
 
   if(!xHasEnoughValues(X_B_observed, 100)) {
     print("ERROR: X_B_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
-    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreValuesCheck = TRUE (not recomended!)")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreMinimumLengthCheck = TRUE (not recomended!)")
     return(NULL)
   }
   }
@@ -189,12 +184,11 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
   }
 
 
-  nDatapointsWhereDensityEstimated <- nOfEstimationPoints - 1
-  j_max <- nDatapointsWhereDensityEstimated-1
+  j_max <- nOfEstimationPoints - 1
   p <- 0:j_max / j_max # the size of the intervals is 1 / j_max.
 
-  dataA <- matrix(0, nrow = nOfBootstrapSamples, ncol = nDatapointsWhereDensityEstimated)
-  dataB <- matrix(0, nrow = nOfBootstrapSamples, ncol = nDatapointsWhereDensityEstimated)
+  dataA <- matrix(0, nrow = nOfBootstrapSamples, ncol = nOfEstimationPoints)
+  dataB <- matrix(0, nrow = nOfBootstrapSamples, ncol = nOfEstimationPoints)
 
   pb = utils::txtProgressBar(min = 1, max = nOfBootstrapSamples, initial = 1, style = 3)
 
@@ -209,8 +203,8 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 
     r_max <- ranksObj$r_max
 
-    dataA[i,] <- helper_from_ranks_to_integrable_values(sortedRanks = ranksObj$X_A_ranks, r_max = r_max, j_max = j_max)
-    dataB[i,] <- helper_from_ranks_to_integrable_values(sortedRanks = ranksObj$X_B_ranks, r_max = r_max, j_max = j_max)
+    dataA[i,] <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max)
+    dataB[i,] <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max)
   }
   alpha_new <- 1 - sqrt(1-alpha)
   # matplot(dataA, type = c("l"),pch=1, xlab = "density dataA") #plot
@@ -265,6 +259,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #' @param nOfEstimationPoints (optional, default 1000) the number of points in the interval [0,1] in which the density is estimated.
 #' @param alpha (optional, default value 0.2) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
 #' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
+#' @param ignoreMinimumLengthCheck (optional, default value FALSE) wether to check for a minimum length in X_A and X_B.
 #' @return Returns a list with the following fields:
 #'
 #' - p: values in the interval [0,1] that represent the nOfEstimationPoints points in which the densities are estimated. Useful for plotting.
@@ -291,12 +286,8 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #' @examples
 #' library(ggplot2)
 #' ### Example 1 ###
-#' X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,
-#'     0.11,2.0,0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,
-#'     0.316,0.1523,0.1297,0.1123,0.139572,0.1937523)
-#' X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,
-#'     0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,
-#'     0.12363,0.132451,0.59217,0.157129,0.13528, 0.145)
+#' X_A_observed <- rnorm(100, mean = 2, sd = 1)
+#' X_B_observed <- rnorm(100, mean = 2.1, sd = 0.5)
 #' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
 #' fig1 = plot_X_prima_AB(res, plotDifference=FALSE) + ggtitle("Example 1")
 #' print(fig1)
@@ -304,11 +295,11 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #' \donttest{
 #' ### Example 2 ###
 #' # Comparing the estimations with the actual distributions for two normal distributions.
-#' ###################################
-#' ## sample size = 30 ##############
-#' ###################################
-#' X_A_observed <- rnorm(30,mean = 1, sd = 1)
-#' X_B_observed <- rnorm(30,mean = 1.3, sd = 0.5)
+#' ##################################
+#' ## sample size = 100 #############
+#' ##################################
+#' X_A_observed <- rnorm(100,mean = 1, sd = 1)
+#' X_B_observed <- rnorm(100,mean = 1.3, sd = 0.5)
 #' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
 #'
 #' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
@@ -332,13 +323,13 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #' geom_line(data=as.data.frame(actualDistributions),
 #' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
 #'
-#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-#'   values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual X'_A"="#0000FF", "Actual X'_B"="#FF0000"))+
 #'
-#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-#'  values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X_A"="solid", "X_B"="dashed", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
 #'
-#' ggtitle("30 samples used in the estimation")
+#' ggtitle("100 samples used in the estimation")
 #' print(fig)
 #'
 #' ###################################
@@ -369,16 +360,15 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #' geom_line(data=as.data.frame(actualDistributions),
 #' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
 #'
-#' scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-#'   values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual X'_A"="#0000FF", "Actual X'_B"="#FF0000"))+
 #'
-#'
-#' scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-#'  values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid")) +
+#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+#' values = c("X_A"="solid", "X_B"="dashed", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
 #' ggtitle("300 samples used in the estimation")
 #' print(fig)
 #'}
-get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=1000, alpha=0.2,  EPSILON=1e-20) {
+get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=1000, alpha=0.2,  EPSILON=1e-20, ignoreMinimumLengthCheck=FALSE) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
@@ -391,19 +381,19 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
     return(NULL)
   }
 
-  if(!ignoreValuesCheck)
+  if(!ignoreMinimumLengthCheck)
   {
   if(!xHasEnoughValues(X_A_observed, 100)) {
     print("ERROR: X_A_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
-    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreValuesCheck = TRUE (not recomended!)")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreMinimumLengthCheck = TRUE (not recomended!)")
     return(NULL)
   }
 
   if(!xHasEnoughValues(X_B_observed, 100)) {
     print("ERROR: X_B_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
-    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreValuesCheck = TRUE (not recomended!)")
+    print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreMinimumLengthCheck = TRUE (not recomended!)")
     return(NULL)
   }
   }
@@ -421,8 +411,7 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
     return(NULL)
   }
 
-  nDatapointsWhereDensityEstimated <- nOfEstimationPoints - 1
-  j_max <- nDatapointsWhereDensityEstimated-1
+  j_max <- nOfEstimationPoints-1
   p <- 0:j_max / j_max # the size of the intervals is 1 / j_max.
 
 
@@ -452,8 +441,8 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 
 
   res$diff_estimation <- res$X_prima_A_cumulative_estimation - res$X_prima_B_cumulative_estimation
-  res$diff_upper <- coerceToDifferenceArea(res$X_prima_A_cumulative_upper - res$X_prima_B_cumulative_lower, res$p)
-  res$diff_lower <- coerceToDifferenceArea(res$X_prima_A_cumulative_lower - res$X_prima_B_cumulative_upper, res$p)
+  res$diff_upper <- coerceToDifferenceArea(res$p, res$X_prima_A_cumulative_upper - res$X_prima_B_cumulative_lower)
+  res$diff_lower <- coerceToDifferenceArea(res$p, res$X_prima_A_cumulative_lower - res$X_prima_B_cumulative_upper)
 
 
 
@@ -554,6 +543,7 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), 
 
 
 
+
 #' Get the empirical distribution from samples.
 #'
 #' Given the observed sampels of X_A (or X_B) returns the empirical cumulative distribution
@@ -575,64 +565,62 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), 
 #' lines(x=c$p, y=c$X_prima_B_cumulative_estimation, col="red")
 getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfEstimationPoints, EPSILON, trapezoid=TRUE) {
 
-  j_max <- nOfEstimationPoints -2
+
+
+  j_max <- nOfEstimationPoints - 1
+  p <- 0:j_max / j_max
   ranksObj <- ranksOfObserved(X_A_observed, X_B_observed, EPSILON)
-  X_A_ranks <- sort(ranksObj$X_A_ranks)
-  X_B_ranks <- sort(ranksObj$X_B_ranks)
+  # X_A_ranks <- sort(ranksObj$X_A_ranks)
+  # X_B_ranks <- sort(ranksObj$X_B_ranks)
   r_max <- ranksObj$r_max
 
   res <- list()
   if (trapezoid)
   {
-    res$X_prima_A_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(sortedRanks = X_A_ranks, r_max = r_max, j_max = j_max))
-    res$X_prima_B_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(sortedRanks = X_B_ranks, r_max = r_max, j_max = j_max))
+    res$X_prima_A_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max))
+    res$X_prima_B_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max))
   }
   else
   {
-  #for A
-    positions <- floor(X_A_ranks / (r_max) * j_max)
-    res$X_prima_A_cumulative_estimation <- array(0, dim=j_max + 1)
-    tabA <- table(X_A_ranks)
 
+    res$X_prima_A_cumulative_estimation <- c(0, helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max-1, cumulative = TRUE))
+    res$X_prima_B_cumulative_estimation <- c(0, helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max-1, cumulative = TRUE))
 
-
-    for (rank_idx in 1:length(X_A_ranks)) {
-      rank <- X_A_ranks[[rank_idx]]
-      nreps <- as.numeric(tabA[ names(tabA)==rank ])
-
-      if (length(nreps)==0) {
-        nreps <- 0
-      }
-      res$X_prima_A_cumulative_estimation[[    positions[[ rank_idx ]]  + 1   ]] <- nreps
-    }
-    res$X_prima_A_cumulative_estimation <- cumsum(res$X_prima_A_cumulative_estimation) / sum(res$X_prima_A_cumulative_estimation)
-    res$X_prima_A_cumulative_estimation[[1]] <- 0
-
-
-
-
-    # for B
-    positions <- floor(X_B_ranks / (r_max) * j_max)
-    res$X_prima_B_cumulative_estimation <- array(0, dim=j_max + 1)
-    tabB <- table(X_B_ranks)
-
-
-    for (rank_idx in 1:length(X_B_ranks)) {
-      rank <- X_B_ranks[[rank_idx]]
-      nreps <- as.numeric(tabB[ names(tabB)==rank ])
-
-      if (length(nreps)==0) {
-        nreps <- 0
-      }
-      res$X_prima_B_cumulative_estimation[[    positions[[ rank_idx ]]  + 1   ]] <- nreps
-    }
-    res$X_prima_B_cumulative_estimation <- cumsum(res$X_prima_B_cumulative_estimation) / sum(res$X_prima_B_cumulative_estimation)
-    res$X_prima_B_cumulative_estimation[[1]] <- 0
+    # dataA <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max, cumulative = FALSE)
+    # dataB <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max, cumulative = FALSE)
+    #
+    #
+    # print(dataA)
+    # print(dataB)
+    # print(r_max)
+    #
+    # res$X_prima_A_cumulative_estimation <- c(dataA)
+    # res$X_prima_B_cumulative_estimation <- c(dataB)
+    #
+    # cumIntegrableValueA <- 0
+    # cumIntegrableValueB <- 0
+    # last_index_updated <- 1
+    # index_in_data <- 1
+    #
+    #
+    # for (i in 0:(r_max+1)) {
+    #   index_in_data <- min(max(1, floor((i) / (r_max+1) * (nOfEstimationPoints)) ), length(dataA))
+    #   cumIntegrableValueA <- cumIntegrableValueA + dataA[index_in_data]
+    #   cumIntegrableValueB <- cumIntegrableValueB + dataB[index_in_data]
+    #   while (last_index_updated <= index_in_data) {
+    #     res$X_prima_A_cumulative_estimation[last_index_updated] = cumIntegrableValueA
+    #     res$X_prima_B_cumulative_estimation[last_index_updated] = cumIntegrableValueB
+    #     last_index_updated =  last_index_updated + 1
+    #   }
+    # }
+    #
+    #     res$X_prima_A_cumulative_estimation <- res$X_prima_A_cumulative_estimation / max(c(res$X_prima_A_cumulative_estimation, res$X_prima_B_cumulative_estimation), na.rm = TRUE)
+    #     res$X_prima_B_cumulative_estimation <- res$X_prima_B_cumulative_estimation / max(c(res$X_prima_A_cumulative_estimation, res$X_prima_B_cumulative_estimation), na.rm = TRUE)
+    #     res$X_prima_A_cumulative_estimation[0] <- 0
+    #     res$X_prima_B_cumulative_estimation[0] <- 0
   }
 
-
-
-  res$p <- 0:j_max / j_max
+  res$p <- p
   return(res)
 }
 
@@ -1110,6 +1098,11 @@ sampleFromDensity <- function(density, nSamples, xlims, nIntervals=1e5) {
 #' @return vector with the v values corrected
 coerceToDifferenceArea <- function(p, v) {
 
+  if(length(p) != length(v))
+  {
+    cat("\nERROR: the length of v should be the same of p. length(v) =",length(v), "  and length(p) =", length(p), "\n")
+  }
+
   v_new <- v
 
   for (i in 1:length(p)) {
@@ -1416,7 +1409,8 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' The density corresponding to the position in index j is computed, given the SORTED ranks, and r_max
 #' @param sortedRanks the sorted ranks of either the observed X_A or X_B.
 #' @param r_max The largest rank.
-#' @param j_max the largest index that will be used. its value is nDatapointsWhereDensityEstimated-1
+#' @param j_max the largest index that will be used.
+#' @param cumulative wether the integrable values should be cumulative or not. Cumulative values used in the estimation of the empirical distribution.
 #' @keywords internal
 #' @import Rcpp
 #' @examples
@@ -1459,16 +1453,15 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 #' @export
 #' @return the probability density in this point
-helper_from_ranks_to_integrable_values <- function(rank_interval_mult, rank_interval_lengths, r_max, j_max) {
+helper_from_ranks_to_integrable_values <- function(rank_interval_mult, rank_interval_lengths, r_max, j_max, cumulative = FALSE) {
 
 
 
-cppFunction('NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVector rank_interval_mult, NumericVector rank_interval_lengths_cumsum, int r_max, int j_max)
+cppFunction('NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVector rank_interval_mult, NumericVector rank_interval_lengths_cumsum, int r_max, int j_max, bool cumulative)
 {
   NumericVector j_vec(j_max +1);
 
   int last_biggest_index = 0;
-  int n_times_last = 0;
 
   double p_corresponding_to_j;
   int biggest_rank_that_has_a_lower_pos_than_j_in_p_terms;
@@ -1478,7 +1471,7 @@ cppFunction('NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVec
 
   int index_rank_interval_mul = 0;
   int rank_interval_mul_lower = 0;
-  int rank_interval_mul_upper = rank_interval_lengths_cumsum[0] - 1; 
+  int rank_interval_mul_upper = rank_interval_lengths_cumsum[0] - 1;
 
 
 
@@ -1488,8 +1481,8 @@ cppFunction('NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVec
     p_corresponding_to_j = (double) j / (double) j_max;
     biggest_rank_that_has_a_lower_pos_than_j_in_p_terms = -1;
     k_was_updated = false;
-    
-    // Find which rank corresponds to position j in j_vec 
+
+    // Find which rank corresponds to position j in j_vec
     for (int k = last_biggest_index; k <= r_max; k++)
     {
       if ((double) k / (double) (r_max+1) <= p_corresponding_to_j) {
@@ -1501,14 +1494,11 @@ cppFunction('NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVec
       }
     }
 
-    n_times = 0;
-    
-    
 
-    if (!k_was_updated) {
-      n_times = n_times_last;
-    }
-    else // n_times = count how many times biggest_rank_that_has_a_lower_pos_than_j_in_p_terms is in sortedRanks
+
+
+
+    if(k_was_updated) // n_times = count how many times biggest_rank_that_has_a_lower_pos_than_j_in_p_terms is in sortedRanks
     {
 
     // while biggest_rank_that_has_a_lower_pos_than_j_in_p_terms not in the interval [rank_interval_mul_lower, rank_interval_mul_upper]
@@ -1518,11 +1508,17 @@ cppFunction('NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVec
         rank_interval_mul_lower = rank_interval_lengths_cumsum[index_rank_interval_mul - 1];
         rank_interval_mul_upper = rank_interval_lengths_cumsum[index_rank_interval_mul] - 1;
       }
-      n_times = rank_interval_mult[index_rank_interval_mul];
-    
+      if(cumulative)
+      {
+        n_times += rank_interval_mult[index_rank_interval_mul];
+      }
+      else
+      {
+        n_times = rank_interval_mult[index_rank_interval_mul];
+      }
+
     }
     j_vec[j] = n_times;
-    n_times_last = n_times;
   }
 
   return(j_vec);
@@ -1530,8 +1526,16 @@ cppFunction('NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVec
 
 
   # since the integral needs to be 1, we need that sum_{j=0:(j_max-1)}(density in p_j * interval_length) = 1, where p_j = p[[j+1]].
-  j_vec <- cpp_helper_from_ranks_to_integrable_values(rank_interval_mult, cumsum(rank_interval_lengths), r_max, j_max)
-  return(j_vec / utils::tail(helperTrapezoidRule(j_vec),1))
+  j_vec <- cpp_helper_from_ranks_to_integrable_values(rank_interval_mult, cumsum(rank_interval_lengths), r_max, j_max, cumulative)
+
+  if (!cumulative) {
+    return(j_vec / utils::tail(helperTrapezoidRule(j_vec),1))
+  }else
+  {
+    return(j_vec / tail(j_vec,1))
+  }
+
+
 }
 
 

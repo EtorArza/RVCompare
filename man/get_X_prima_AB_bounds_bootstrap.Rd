@@ -11,7 +11,7 @@ get_X_prima_AB_bounds_bootstrap(
   alpha = 0.2,
   EPSILON = 1e-20,
   nOfBootstrapSamples = 1000,
-  ignoreValuesCheck = FALSE
+  ignoreMinimumLengthCheck = FALSE
 )
 }
 \arguments{
@@ -60,12 +60,8 @@ Much slower than the Dvoretzky–Kiefer–Wolfowitz approach.
 library(ggplot2)
 
 ### Example 1 ###
-X_A_observed <- c(0.13,0.21,0.13,0.11,2.2,0.12,0.5,0.14,0.21,0.17,
-    0.11,2.0,0.12,0.50,0.14,0.16,0.2,0.23,0.6,0.11,0.18,0.113,0.1234,
-    0.316,0.1523,0.1297,0.1123,0.139572,0.1937523)
-X_B_observed <- c(0.71,0.12,0.19,0.17,1.5,1.0,0.5,0.41,0.11,0.16,0.01,
-    0.31,0.34,0.64,0.14,0.13,0.09,0.21,0.29,0.36,0.41,0.13,0.142335,
-    0.12363,0.132451,0.59217,0.157129,0.13528, 0.145)
+X_A_observed <- rnorm(100, mean = 2, sd = 1)
+X_B_observed <- rnorm(100, mean = 2.1, sd = 0.5)
 \donttest{
  res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 }
@@ -81,10 +77,10 @@ print(fig1)
 ### Example 2 ###
 # Comparing the estimations with the actual distributions for two normal distributions.
 ###################################
-## sample size = 30 ##############
+## sample size = 100 ##############
 ###################################
-X_A_observed <- rnorm(30,mean = 1, sd = 1)
-X_B_observed <- rnorm(30,mean = 1.3, sd = 0.5)
+X_A_observed <- rnorm(100,mean = 1, sd = 1)
+X_B_observed <- rnorm(100,mean = 1.3, sd = 0.5)
 res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 
 X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
@@ -111,13 +107,13 @@ aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Ac
 geom_line(data=as.data.frame(actualDistributions),
 aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
 
-scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+scale_colour_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual X'_A"="#0000FF", "Actual X'_B"="#FF0000"))+
 
-scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+scale_linetype_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+values = c("X_A"="solid", "X_B"="dashed", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
 
-ggtitle("30 samples used in the estimation")
+ggtitle("100 samples used in the estimation")
 print(fig)
 
 ###################################
@@ -152,11 +148,11 @@ aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Ac
 geom_line(data=as.data.frame(actualDistributions),
 aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
 
-scale_colour_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-values = c("X'_A"="#F8766D", "X'_B"="#00BFC4", "Actual X'_A"="#FF0000", "Actual X'_B"="#0000FF"))+
+scale_colour_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual X'_A"="#0000FF", "Actual X'_B"="#FF0000"))+
 
-scale_linetype_manual("", breaks = c("X'_A", "X'_B","Actual X'_A", "Actual X'_B"),
-values = c("X'_A"="dashed", "X'_B"="solid", "Actual X'_A"="solid", "Actual X'_B"="solid")) +
+scale_linetype_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
+values = c("X_A"="solid", "X_B"="dashed", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
 
 ggtitle("300 samples used in the estimation")
 print(fig)

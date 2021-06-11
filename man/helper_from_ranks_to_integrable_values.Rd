@@ -8,13 +8,16 @@ helper_from_ranks_to_integrable_values(
   rank_interval_mult,
   rank_interval_lengths,
   r_max,
-  j_max
+  j_max,
+  cumulative = FALSE
 )
 }
 \arguments{
 \item{r_max}{The largest rank.}
 
-\item{j_max}{the largest index that will be used. its value is nDatapointsWhereDensityEstimated-1}
+\item{j_max}{the largest index that will be used.}
+
+\item{cumulative}{wether the integrable values should be cumulative or not. Cumulative values used in the estimation of the empirical distribution.}
 
 \item{sortedRanks}{the sorted ranks of either the observed X_A or X_B.}
 }
