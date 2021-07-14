@@ -672,11 +672,9 @@ CdFromProbMassFunctions <- function(pMassA, pMassB) {
   resA <- 0
   resB <- 0
   for (i in 2:length(pMassA_new)) {
-    cat("------------------\ni: ",i,"\n")
+    # cat("------------------\ni: ",i,"\n")
     if(F_A[i-1] == F_B[i-1] && F_A[i] == F_B[i]) # do not update resA and resB
     {
-      cat("line 669\n")
-
       cA = cA - pMassA_new[i]
       cB = cB - pMassB_new[i]
       next
@@ -687,24 +685,20 @@ CdFromProbMassFunctions <- function(pMassA, pMassB) {
       (F_A[i-1] > F_B[i-1]  && F_A[i] >= F_B[i])
     )
     {
-      cat("line 679\n")
       delta_i <- 0
     }else if( # F_B[i] > F_A[i] and F_B[i-1] > F_A[i-1]
       (F_B[i-1] >= F_A[i-1] && F_B[i] > F_A[i]) ||
       (F_B[i-1] > F_A[i-1]  && F_B[i] >= F_A[i])
     )
     {
-      cat("line 686\n")
       delta_i <- 1
     }
     else if(F_B[i-1] > F_A[i-1] && F_B[i] < F_A[i] ) # if F_B is higher than F_A in x_{i-1} and lower in x_{i}
     {
-      cat("line 691\n")
       delta_i <- (F_A[i-1] - F_B[i-1]) / ((F_B[i]- F_B[i-1]) - (F_A[i]- F_A[i-1]))
     }
     else if(F_B[i-1] < F_A[i-1] && F_B[i] > F_A[i] ) # if F_A is higher than F_B in x_{i-1} and lower in x_{i}
     {
-      cat("line 696\n")
       delta_i <- 1 - ((F_A[i-1] - F_B[i-1]) / ((F_B[i]- F_B[i-1]) - (F_A[i]- F_A[i-1])))
     }
     else
@@ -714,12 +708,12 @@ CdFromProbMassFunctions <- function(pMassA, pMassB) {
     }
     resA <- resA + pMassA_new[i]*(1 - delta_i)
     resB <- resB + pMassB_new[i]*delta_i
-    cat("delta: ",delta_i,"\n")
-    cat("resA: ",resA,"\n")
-    cat("resB: ",resB,"\n")
+    # cat("delta: ",delta_i,"\n")
+    # cat("resA: ",resA,"\n")
+    # cat("resB: ",resB,"\n")
   }
-  cat("cA: ",cA,"\n")
-  cat("cB: ",cB,"\n")
+  # cat("cA: ",cA,"\n")
+  # cat("cB: ",cB,"\n")
   res <- resA / cA - resB / cB
   return(res /2 + 0.5)
 }
