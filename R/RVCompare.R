@@ -5,9 +5,9 @@
 ################## Main functions ##################
 
 
-#' Estimate X'_A and X'_B bounds with bootstrap
+#' Estimate Y_A and Y_B bounds with bootstrap
 #'
-#' Estimate the confidence intervals for the cumulative distributions of X'_A and X'_B using bootstrap.
+#' Estimate the confidence intervals for the cumulative distributions of Y_A and Y_B using bootstrap.
 #' Much slower than the Dvoretzky–Kiefer–Wolfowitz approach.
 #'
 #' @param X_A_observed array of the observed samples (real values) of X_A.
@@ -21,19 +21,19 @@
 #'
 #' - p: values in the interval [0,1] that represent the nOfEstimationPoints points in which the densities are estimated. Useful for plotting.
 #'
-#' - X_prima_A_cumulative_estimation: an array with the estimated cumulative diustribution function of X_prima_A from 0 to p[[i]].
+#' - Y_A_cumulative_estimation: an array with the estimated cumulative diustribution function of Y_A from 0 to p[[i]].
 #'
-#' - X_prima_A_cumulative_upper: an array with the upper bounds of confidence 1 - alpha of the cumulative density of X_prima_A
+#' - Y_A_cumulative_upper: an array with the upper bounds of confidence 1 - alpha of the cumulative density of Y_A
 #'
-#' - X_prima_A_cumulative_lower: an array with the lower bounds of confidence 1 - alpha of the cumulative density of X_prima_A
+#' - Y_A_cumulative_lower: an array with the lower bounds of confidence 1 - alpha of the cumulative density of Y_A
 #'
-#' - X_prima_B_cumulative_estimation: The same as X_prima_A_cumulative_estimation for X'_B.
+#' - Y_B_cumulative_estimation: The same as Y_A_cumulative_estimation for Y_B.
 #'
-#' - X_prima_B_cumulative_upper: The same as X_prima_A_cumulative_upper for X'_B
+#' - Y_B_cumulative_upper: The same as Y_A_cumulative_upper for Y_B
 #'
-#' - X_prima_B_cumulative_lower: The same as X_prima_A_cumulative_lower for X'_B
+#' - Y_B_cumulative_lower: The same as Y_A_cumulative_lower for Y_B
 #'
-#' - diff_estimation: X_prima_A_cumulative_estimation - X_prima_B_cumulative_estimation
+#' - diff_estimation: Y_A_cumulative_estimation - Y_B_cumulative_estimation
 #'
 #' - diff_upper: an array with the upper bounds of confidence 1 - alpha of the difference between the cumulative distributions
 #'
@@ -48,13 +48,13 @@
 #' X_A_observed <- rnorm(100, mean = 2, sd = 1)
 #' X_B_observed <- rnorm(100, mean = 2.1, sd = 0.5)
 #' \donttest{
-#'  res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
+#'  res <- get_Y_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 #' }
 #' \dontshow{
 #' # easier on computation for testing.
-#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed, nOfBootstrapSamples=1e2, nOfEstimationPoints=20)
+#' res <- get_Y_AB_bounds_bootstrap(X_A_observed, X_B_observed, nOfBootstrapSamples=1e2, nOfEstimationPoints=20)
 #' }
-#' fig1 = plot_X_prima_AB(res, plotDifference=FALSE)+ ggplot2::ggtitle("Example 1")
+#' fig1 = plot_Y_AB(res, plotDifference=FALSE)+ ggplot2::ggtitle("Example 1")
 #' print(fig1)
 #'
 #'
@@ -66,7 +66,7 @@
 #' ###################################
 #' X_A_observed <- rnorm(100,mean = 1, sd = 1)
 #' X_B_observed <- rnorm(100,mean = 1.3, sd = 0.5)
-#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
+#' res <- get_Y_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 #'
 #' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
 #' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
@@ -77,26 +77,26 @@
 #'         EPSILON=1e-20)
 #'
 #'
-#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~
+#' actualDistributions$Y_A_cumulative_estimation <- lm(Y_A_cumulative_estimation ~
 #'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'         data = actualDistributions)$fitted.values
-#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~
+#' actualDistributions$Y_B_cumulative_estimation <- lm(Y_B_cumulative_estimation ~
 #'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'         data = actualDistributions)$fitted.values
 #'
-#' fig = plot_X_prima_AB(res, plotDifference=FALSE) +
+#' fig = plot_Y_AB(res, plotDifference=FALSE) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
-#' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#' aes(x=p, y=Y_A_cumulative_estimation, colour = "Actual Y_A", linetype="Actual Y_A")) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
-#' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#' aes(x=p, y=Y_B_cumulative_estimation, colour = "Actual Y_B", linetype="Actual Y_B")) +
 #'
-#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual X'_A"="#0000FF", "Actual X'_B"="#FF0000"))+
+#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual Y_A", "Actual Y_B"),
+#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual Y_A"="#0000FF", "Actual Y_B"="#FF0000"))+
 #'
-#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X_A"="solid", "X_B"="dashed", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual Y_A", "Actual Y_B"),
+#' values = c("X_A"="solid", "X_B"="dashed", "Actual Y_A"="solid", "Actual Y_B"="solid"))+
 #'
 #' ggtitle("100 samples used in the estimation")
 #' print(fig)
@@ -106,7 +106,7 @@
 #' ###################################
 #' X_A_observed <- rnorm(300,mean = 1, sd = 1)
 #' X_B_observed <- rnorm(300,mean = 1.3, sd = 0.5)
-#' res <- get_X_prima_AB_bounds_bootstrap(X_A_observed, X_B_observed)
+#' res <- get_Y_AB_bounds_bootstrap(X_A_observed, X_B_observed)
 #'
 #' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
 #' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
@@ -117,33 +117,33 @@
 #'         EPSILON=1e-20)
 #'
 #'
-#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~
+#' actualDistributions$Y_A_cumulative_estimation <- lm(Y_A_cumulative_estimation ~
 #'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'         data = actualDistributions)$fitted.values
 #'
-#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~
+#' actualDistributions$Y_B_cumulative_estimation <- lm(Y_B_cumulative_estimation ~
 #'        p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'        data = actualDistributions)$fitted.values
 #'
-#' fig = plot_X_prima_AB(res, plotDifference=FALSE) +
+#' fig = plot_Y_AB(res, plotDifference=FALSE) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
-#' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#' aes(x=p, y=Y_A_cumulative_estimation, colour = "Actual Y_A", linetype="Actual Y_A")) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
-#' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#' aes(x=p, y=Y_B_cumulative_estimation, colour = "Actual Y_B", linetype="Actual Y_B")) +
 #'
-#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual X'_A"="#0000FF", "Actual X'_B"="#FF0000"))+
+#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual Y_A", "Actual Y_B"),
+#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual Y_A"="#0000FF", "Actual Y_B"="#FF0000"))+
 #'
-#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X_A"="solid", "X_B"="dashed", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual Y_A", "Actual Y_B"),
+#' values = c("X_A"="solid", "X_B"="dashed", "Actual Y_A"="solid", "Actual Y_B"="solid"))+
 #'
 #' ggtitle("300 samples used in the estimation")
 #' print(fig)
 #' }
 #'
-get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreMinimumLengthCheck=FALSE) {
+get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreMinimumLengthCheck=FALSE) {
 
 
 
@@ -224,21 +224,21 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
   quantiles <- apply(dataA, 2, stats::quantile, probs = c(alpha_new/2, 0.5, 1.0 - alpha_new/2))
 
 
-  res$X_prima_A_cumulative_estimation <- quantiles[2,]
-  res$X_prima_A_cumulative_lower<- quantiles[1,]
-  res$X_prima_A_cumulative_upper <- quantiles[3,]
+  res$Y_A_cumulative_estimation <- quantiles[2,]
+  res$Y_A_cumulative_lower<- quantiles[1,]
+  res$Y_A_cumulative_upper <- quantiles[3,]
 
 
   quantiles <- apply(dataB, 2, stats::quantile, probs = c(alpha_new/2, 0.5, 1.0 - alpha_new/2))
 
-  res$X_prima_B_cumulative_estimation <- quantiles[2,]
-  res$X_prima_B_cumulative_lower<- quantiles[1,]
-  res$X_prima_B_cumulative_upper <- quantiles[3,]
+  res$Y_B_cumulative_estimation <- quantiles[2,]
+  res$Y_B_cumulative_lower<- quantiles[1,]
+  res$Y_B_cumulative_upper <- quantiles[3,]
 
 
-  res$diff_estimation <- res$X_prima_A_cumulative_estimation - res$X_prima_B_cumulative_estimation
-  res$diff_upper <- coerceToDifferenceArea(res$p, res$X_prima_A_cumulative_upper - res$X_prima_B_cumulative_lower)
-  res$diff_lower <- coerceToDifferenceArea(res$p, res$X_prima_A_cumulative_lower - res$X_prima_B_cumulative_upper)
+  res$diff_estimation <- res$Y_A_cumulative_estimation - res$Y_B_cumulative_estimation
+  res$diff_upper <- coerceToDifferenceArea(res$p, res$Y_A_cumulative_upper - res$Y_B_cumulative_lower)
+  res$diff_lower <- coerceToDifferenceArea(res$p, res$Y_A_cumulative_lower - res$Y_B_cumulative_upper)
 
 
   return(res)
@@ -249,10 +249,10 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 
 
 
-#' Estimate X'_A and X'_B bounds with Dvoretzky–Kiefer–Wolfowitz
+#' Estimate Y_A and Y_B bounds with Dvoretzky–Kiefer–Wolfowitz
 #'
 #'
-#' Estimate the confidence intervals for the cumulative distributions of X'_A and X'_B with Dvoretzky–Kiefer–Wolfowitz.
+#' Estimate the confidence intervals for the cumulative distributions of Y_A and Y_B with Dvoretzky–Kiefer–Wolfowitz.
 #'
 #' @param X_A_observed array of the observed samples (real values) of X_A.
 #' @param X_B_observed array of the observed samples (real values) of X_B.
@@ -264,19 +264,19 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #'
 #' - p: values in the interval [0,1] that represent the nOfEstimationPoints points in which the densities are estimated. Useful for plotting.
 #'
-#' - X_prima_A_cumulative_estimation: an array with the empirical cumulative diustribution function of X_prima_A from 0 to p[[i]].
+#' - Y_A_cumulative_estimation: an array with the empirical cumulative diustribution function of Y_A from 0 to p[[i]].
 #'
-#' - X_prima_A_cumulative_upper: an array with the upper bounds of confidence 1 - alpha of the cumulative density of X_prima_A
+#' - Y_A_cumulative_upper: an array with the upper bounds of confidence 1 - alpha of the cumulative density of Y_A
 #'
-#' - X_prima_A_cumulative_lower: an array with the lower bounds of confidence 1 - alpha of the cumulative density of X_prima_A
+#' - Y_A_cumulative_lower: an array with the lower bounds of confidence 1 - alpha of the cumulative density of Y_A
 #'
-#' - X_prima_B_cumulative_estimation: The same as X_prima_A_cumulative_estimation for X'_B.
+#' - Y_B_cumulative_estimation: The same as Y_A_cumulative_estimation for Y_B.
 #'
-#' - X_prima_B_cumulative_upper: The same as X_prima_A_cumulative_upper for X'_B
+#' - Y_B_cumulative_upper: The same as Y_A_cumulative_upper for Y_B
 #'
-#' - X_prima_B_cumulative_lower: The same as X_prima_A_cumulative_lower for X'_B
+#' - Y_B_cumulative_lower: The same as Y_A_cumulative_lower for Y_B
 #'
-#' - diff_estimation: X_prima_A_cumulative_estimation - X_prima_B_cumulative_estimation
+#' - diff_estimation: Y_A_cumulative_estimation - Y_B_cumulative_estimation
 #'
 #' - diff_upper: an array with the upper bounds of confidence 1 - alpha of the difference between the cumulative distributions
 #'
@@ -288,8 +288,8 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #' ### Example 1 ###
 #' X_A_observed <- rnorm(100, mean = 2, sd = 1)
 #' X_B_observed <- rnorm(100, mean = 2.1, sd = 0.5)
-#' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
-#' fig1 = plot_X_prima_AB(res, plotDifference=FALSE) + ggtitle("Example 1")
+#' res <- get_Y_AB_bounds_DKW(X_A_observed, X_B_observed)
+#' fig1 = plot_Y_AB(res, plotDifference=FALSE) + ggtitle("Example 1")
 #' print(fig1)
 #'
 #' \donttest{
@@ -300,7 +300,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #' ##################################
 #' X_A_observed <- rnorm(100,mean = 1, sd = 1)
 #' X_B_observed <- rnorm(100,mean = 1.3, sd = 0.5)
-#' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
+#' res <- get_Y_AB_bounds_DKW(X_A_observed, X_B_observed)
 #'
 #' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
 #' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
@@ -308,26 +308,26 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #'  X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
 #'
 #'
-#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~
+#' actualDistributions$Y_A_cumulative_estimation <- lm(Y_A_cumulative_estimation ~
 #'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'         data = actualDistributions)$fitted.values
-#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~
+#' actualDistributions$Y_B_cumulative_estimation <- lm(Y_B_cumulative_estimation ~
 #'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'         data = actualDistributions)$fitted.values
 #'
-#' fig = plot_X_prima_AB(res, plotDifference=FALSE) +
+#' fig = plot_Y_AB(res, plotDifference=FALSE) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
-#' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#' aes(x=p, y=Y_A_cumulative_estimation, colour = "Actual Y_A", linetype="Actual Y_A")) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
-#' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#' aes(x=p, y=Y_B_cumulative_estimation, colour = "Actual Y_B", linetype="Actual Y_B")) +
 #'
-#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual X'_A"="#0000FF", "Actual X'_B"="#FF0000"))+
+#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual Y_A", "Actual Y_B"),
+#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual Y_A"="#0000FF", "Actual Y_B"="#FF0000"))+
 #'
-#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X_A"="solid", "X_B"="dashed", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual Y_A", "Actual Y_B"),
+#' values = c("X_A"="solid", "X_B"="dashed", "Actual Y_A"="solid", "Actual Y_B"="solid"))+
 #'
 #' ggtitle("100 samples used in the estimation")
 #' print(fig)
@@ -337,7 +337,7 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #' ###################################
 #' X_A_observed <- rnorm(300,mean = 1, sd = 1)
 #' X_B_observed <- rnorm(300,mean = 1.3, sd = 0.5)
-#' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
+#' res <- get_Y_AB_bounds_DKW(X_A_observed, X_B_observed)
 #'
 #' X_A_observed_large_sample <- sort(rnorm(1e4, mean = 1, sd = 1))
 #' X_B_observed_large_sample <- sort(rnorm(1e4, mean = 1.3, sd = 0.5))
@@ -345,30 +345,30 @@ get_X_prima_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstim
 #'  X_B_observed_large_sample, nOfEstimationPoints=1e4, EPSILON=1e-20)
 #'
 #'
-#' actualDistributions$X_prima_A_cumulative_estimation <- lm(X_prima_A_cumulative_estimation ~
+#' actualDistributions$Y_A_cumulative_estimation <- lm(Y_A_cumulative_estimation ~
 #'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'         data = actualDistributions)$fitted.values
-#' actualDistributions$X_prima_B_cumulative_estimation <- lm(X_prima_B_cumulative_estimation ~
+#' actualDistributions$Y_B_cumulative_estimation <- lm(Y_B_cumulative_estimation ~
 #'         p + I(p^2) + I(p^3)+ I(p^4)+ I(p^5)+ I(p^6)+I(p^7)+ I(p^8),
 #'         data = actualDistributions)$fitted.values
 #'
-#' fig = plot_X_prima_AB(res, plotDifference=FALSE) +
+#' fig = plot_Y_AB(res, plotDifference=FALSE) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
-#' aes(x=p, y=X_prima_A_cumulative_estimation, colour = "Actual X'_A", linetype="Actual X'_A")) +
+#' aes(x=p, y=Y_A_cumulative_estimation, colour = "Actual Y_A", linetype="Actual Y_A")) +
 #'
 #' geom_line(data=as.data.frame(actualDistributions),
-#' aes(x=p, y=X_prima_B_cumulative_estimation, colour = "Actual X'_B", linetype="Actual X'_B")) +
+#' aes(x=p, y=Y_B_cumulative_estimation, colour = "Actual Y_B", linetype="Actual Y_B")) +
 #'
-#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual X'_A"="#0000FF", "Actual X'_B"="#FF0000"))+
+#' scale_colour_manual("", breaks = c("X_A", "X_B","Actual Y_A", "Actual Y_B"),
+#' values = c("X_A"="#00BFC4", "X_B"="#F8766D", "Actual Y_A"="#0000FF", "Actual Y_B"="#FF0000"))+
 #'
-#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual X'_A", "Actual X'_B"),
-#' values = c("X_A"="solid", "X_B"="dashed", "Actual X'_A"="solid", "Actual X'_B"="solid"))+
+#' scale_linetype_manual("", breaks = c("X_A", "X_B","Actual Y_A", "Actual Y_B"),
+#' values = c("X_A"="solid", "X_B"="dashed", "Actual Y_A"="solid", "Actual Y_B"="solid"))+
 #' ggtitle("300 samples used in the estimation")
 #' print(fig)
 #'}
-get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=1000, alpha=0.2,  EPSILON=1e-20, ignoreMinimumLengthCheck=FALSE) {
+get_Y_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=1000, alpha=0.2,  EPSILON=1e-20, ignoreMinimumLengthCheck=FALSE) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
@@ -420,8 +420,8 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
   res<-getEmpiricalCumulativeDistributions(X_A_observed, X_B_observed, nOfEstimationPoints, EPSILON, trapezoid=FALSE)
 
 
-  empiricalA <- res$X_prima_A_cumulative_estimation
-  empiricalB <- res$X_prima_B_cumulative_estimation
+  empiricalA <- res$Y_A_cumulative_estimation
+  empiricalB <- res$Y_B_cumulative_estimation
 
   res$p <- p
 
@@ -432,17 +432,17 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 
 
 
-  res$X_prima_A_cumulative_lower<- clip_to_0_1_interval(empiricalA - bandSizeA)
-  res$X_prima_A_cumulative_upper <- clip_to_0_1_interval(empiricalA + bandSizeA)
+  res$Y_A_cumulative_lower<- clip_to_0_1_interval(empiricalA - bandSizeA)
+  res$Y_A_cumulative_upper <- clip_to_0_1_interval(empiricalA + bandSizeA)
 
 
-  res$X_prima_B_cumulative_lower<- clip_to_0_1_interval(empiricalB - bandSizeB)
-  res$X_prima_B_cumulative_upper <- clip_to_0_1_interval(empiricalB + bandSizeB)
+  res$Y_B_cumulative_lower<- clip_to_0_1_interval(empiricalB - bandSizeB)
+  res$Y_B_cumulative_upper <- clip_to_0_1_interval(empiricalB + bandSizeB)
 
 
-  res$diff_estimation <- res$X_prima_A_cumulative_estimation - res$X_prima_B_cumulative_estimation
-  res$diff_upper <- coerceToDifferenceArea(res$p, res$X_prima_A_cumulative_upper - res$X_prima_B_cumulative_lower)
-  res$diff_lower <- coerceToDifferenceArea(res$p, res$X_prima_A_cumulative_lower - res$X_prima_B_cumulative_upper)
+  res$diff_estimation <- res$Y_A_cumulative_estimation - res$Y_B_cumulative_estimation
+  res$diff_upper <- coerceToDifferenceArea(res$p, res$Y_A_cumulative_upper - res$Y_B_cumulative_lower)
+  res$diff_lower <- coerceToDifferenceArea(res$p, res$Y_A_cumulative_lower - res$Y_B_cumulative_upper)
 
 
 
@@ -454,14 +454,14 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 
 
 
-#' Plot the estimated cdf of X'_A and X'_B or their difference
+#' Plot the estimated cdf of Y_A and Y_B or their difference
 #'
-#' retunrs a ggplot2 with the estimations of  X'_A and X'_B or the difference in cumulative distribution function.
+#' retunrs a ggplot2 with the estimations of  Y_A and Y_B or the difference in cumulative distribution function.
 #'
 #'
-#' @param estimated_X_prima_AB_bounds the bounds estimated with \code{\link{get_X_prima_AB_bounds_bootstrap}} or \code{\link{get_X_prima_AB_bounds_DKW}}.
+#' @param estimated_Y_AB_bounds the bounds estimated with \code{\link{get_Y_AB_bounds_bootstrap}} or \code{\link{get_Y_AB_bounds_DKW}}.
 #' @param labels (optional, default=c("X_A","X_B")) a string vector of length 2 with the labels of X_A and X_B, in that order.
-#' @param plotDifference (optional, default=TRUE) plots the difference (X'_A - X'_B) instead of each of the random variables on their own.
+#' @param plotDifference (optional, default=TRUE) plots the difference (Y_A - Y_B) instead of each of the random variables on their own.
 #' @return the ggplot figure object.
 #' @export
 #' @import ggplot2
@@ -470,12 +470,12 @@ get_X_prima_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationP
 #'
 #' X_A_observed <- rnorm(800,mean = 1, sd = 1)
 #' X_B_observed <- rnorm(800,mean = 1.3, sd = 0.5)
-#' res <- get_X_prima_AB_bounds_DKW(X_A_observed, X_B_observed)
-#' densitiesPlot = plot_X_prima_AB(res, plotDifference=TRUE)
+#' res <- get_Y_AB_bounds_DKW(X_A_observed, X_B_observed)
+#' densitiesPlot = plot_Y_AB(res, plotDifference=TRUE)
 #' print(densitiesPlot)
-plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), plotDifference=TRUE) {
-  df <- data.frame(matrix(unlist(estimated_X_prima_AB_bounds), nrow=length(estimated_X_prima_AB_bounds$p), byrow=FALSE))
-  colnames(df) <- names(estimated_X_prima_AB_bounds)
+plot_Y_AB <- function(estimated_Y_AB_bounds, labels=c("X_A","X_B"), plotDifference=TRUE) {
+  df <- data.frame(matrix(unlist(estimated_Y_AB_bounds), nrow=length(estimated_Y_AB_bounds$p), byrow=FALSE))
+  colnames(df) <- names(estimated_Y_AB_bounds)
 
   if (length(labels) != 2) {
     print("ERROR: The length of labels shouuld be 2")
@@ -494,16 +494,16 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), 
   # binding for global variable'. This is a known problem with ggplot2, see
   # the following link:
   # https://stackoverflow.com/questions/9439256
-  p <- X_prima_A_cumulative_estimation <- X_prima_B_cumulative_estimation <- NULL
-  X_prima_A_cumulative_lower <- X_prima_B_cumulative_lower <- NULL
-  X_prima_A_cumulative_upper <- X_prima_B_cumulative_upper <- NULL
+  p <- Y_A_cumulative_estimation <- Y_B_cumulative_estimation <- NULL
+  Y_A_cumulative_lower <- Y_B_cumulative_lower <- NULL
+  Y_A_cumulative_upper <- Y_B_cumulative_upper <- NULL
   x <- ymin <- ymax <- NULL
 
   if (plotDifference) {
-    diff_estimation <- estimated_X_prima_AB_bounds$diff_estimation
-    diff_upper <- estimated_X_prima_AB_bounds$diff_upper
-    diff_lower <- estimated_X_prima_AB_bounds$diff_lower
-    p <- estimated_X_prima_AB_bounds$p
+    diff_estimation <- estimated_Y_AB_bounds$diff_estimation
+    diff_upper <- estimated_Y_AB_bounds$diff_upper
+    diff_lower <- estimated_Y_AB_bounds$diff_lower
+    p <- estimated_Y_AB_bounds$p
     diff_plotdf <- data.frame(p, diff_estimation, diff_lower, diff_upper)
 
     resPlot = ggplot2::ggplot() +
@@ -523,14 +523,14 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), 
     labelA <- labels[[1]]
     labelB <- labels[[2]]
     resPlot = ggplot2::ggplot() +
-      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_A_cumulative_lower, ymax = X_prima_A_cumulative_upper, fill=labelA),  alpha = 0.15) +
-      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = X_prima_B_cumulative_lower, ymax = X_prima_B_cumulative_upper, fill=labelB),  alpha = 0.15) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_estimation, colour = labelA, linetype=labelA)) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_estimation, colour = labelB,  linetype =labelB)) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_lower, colour = labelA, linetype=labelA), alpha=0.4) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_A_cumulative_upper, colour = labelA, linetype=labelA), alpha=0.4) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_lower, colour = labelB, linetype=labelB), alpha=0.4) +
-      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=X_prima_B_cumulative_upper, colour = labelB, linetype=labelB), alpha=0.4) +
+      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = Y_A_cumulative_lower, ymax = Y_A_cumulative_upper, fill=labelA),  alpha = 0.15) +
+      ggplot2::geom_ribbon(data = df, ggplot2::aes(x=p, ymin = Y_B_cumulative_lower, ymax = Y_B_cumulative_upper, fill=labelB),  alpha = 0.15) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=Y_A_cumulative_estimation, colour = labelA, linetype=labelA)) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=Y_B_cumulative_estimation, colour = labelB,  linetype =labelB)) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=Y_A_cumulative_lower, colour = labelA, linetype=labelA), alpha=0.4) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=Y_A_cumulative_upper, colour = labelA, linetype=labelA), alpha=0.4) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=Y_B_cumulative_lower, colour = labelB, linetype=labelB), alpha=0.4) +
+      ggplot2::geom_line(data = df, ggplot2::aes(x=p, y=Y_B_cumulative_upper, colour = labelB, linetype=labelB), alpha=0.4) +
       ggplot2::scale_colour_manual("", breaks = c(labelA, labelB),  values = c("#00BFC4", "#F8766D")) +
       ggplot2::scale_linetype_manual("", breaks = c(labelA, labelB), values = c("solid", "dashed")) +
       ggplot2::scale_fill_manual("", breaks = c(labelA, labelB),  values = c("#00BFC4", "#F8766D")) +
@@ -548,7 +548,7 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), 
 #' Get the empirical distribution from samples.
 #'
 #' Given the observed sampels of X_A (or X_B) returns the empirical cumulative distribution
-#' function of X'_A (or X'_B)
+#' function of Y_A (or Y_B)
 #'
 #'
 #' @param X_A_observed array of the observed samples (real values) of X_A.
@@ -562,8 +562,8 @@ plot_X_prima_AB <- function(estimated_X_prima_AB_bounds, labels=c("X_A","X_B"), 
 #' @examples
 #' ### Example 1 ###
 #' c <- getEmpiricalCumulativeDistributions(c(1:5),c(1:3,2:3), 170, EPSILON=1e-20, trapezoid=FALSE)
-#' plot(c$p, c$X_prima_A_cumulative_estimation, type="l")
-#' lines(x=c$p, y=c$X_prima_B_cumulative_estimation, col="red")
+#' plot(c$p, c$Y_A_cumulative_estimation, type="l")
+#' lines(x=c$p, y=c$Y_B_cumulative_estimation, col="red")
 getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfEstimationPoints, EPSILON, trapezoid=TRUE) {
 
 
@@ -578,14 +578,14 @@ getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfE
   res <- list()
   if (trapezoid)
   {
-    res$X_prima_A_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max))
-    res$X_prima_B_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max))
+    res$Y_A_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max))
+    res$Y_B_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max))
   }
   else
   {
 
-    res$X_prima_A_cumulative_estimation <- c(0, helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max-1, cumulative = TRUE))
-    res$X_prima_B_cumulative_estimation <- c(0, helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max-1, cumulative = TRUE))
+    res$Y_A_cumulative_estimation <- c(0, helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max-1, cumulative = TRUE))
+    res$Y_B_cumulative_estimation <- c(0, helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max-1, cumulative = TRUE))
 
     # dataA <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max, cumulative = FALSE)
     # dataB <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max, cumulative = FALSE)
@@ -595,8 +595,8 @@ getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfE
     # print(dataB)
     # print(r_max)
     #
-    # res$X_prima_A_cumulative_estimation <- c(dataA)
-    # res$X_prima_B_cumulative_estimation <- c(dataB)
+    # res$Y_A_cumulative_estimation <- c(dataA)
+    # res$Y_B_cumulative_estimation <- c(dataB)
     #
     # cumIntegrableValueA <- 0
     # cumIntegrableValueB <- 0
@@ -609,16 +609,16 @@ getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfE
     #   cumIntegrableValueA <- cumIntegrableValueA + dataA[index_in_data]
     #   cumIntegrableValueB <- cumIntegrableValueB + dataB[index_in_data]
     #   while (last_index_updated <= index_in_data) {
-    #     res$X_prima_A_cumulative_estimation[last_index_updated] = cumIntegrableValueA
-    #     res$X_prima_B_cumulative_estimation[last_index_updated] = cumIntegrableValueB
+    #     res$Y_A_cumulative_estimation[last_index_updated] = cumIntegrableValueA
+    #     res$Y_B_cumulative_estimation[last_index_updated] = cumIntegrableValueB
     #     last_index_updated =  last_index_updated + 1
     #   }
     # }
     #
-    #     res$X_prima_A_cumulative_estimation <- res$X_prima_A_cumulative_estimation / max(c(res$X_prima_A_cumulative_estimation, res$X_prima_B_cumulative_estimation), na.rm = TRUE)
-    #     res$X_prima_B_cumulative_estimation <- res$X_prima_B_cumulative_estimation / max(c(res$X_prima_A_cumulative_estimation, res$X_prima_B_cumulative_estimation), na.rm = TRUE)
-    #     res$X_prima_A_cumulative_estimation[0] <- 0
-    #     res$X_prima_B_cumulative_estimation[0] <- 0
+    #     res$Y_A_cumulative_estimation <- res$Y_A_cumulative_estimation / max(c(res$Y_A_cumulative_estimation, res$Y_B_cumulative_estimation), na.rm = TRUE)
+    #     res$Y_B_cumulative_estimation <- res$Y_B_cumulative_estimation / max(c(res$Y_A_cumulative_estimation, res$Y_B_cumulative_estimation), na.rm = TRUE)
+    #     res$Y_A_cumulative_estimation[0] <- 0
+    #     res$Y_B_cumulative_estimation[0] <- 0
   }
 
   res$p <- p
@@ -635,6 +635,98 @@ getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfE
 
 
 ################## Comparison Functions ##################
+
+
+#' The dominance rate of X_A over X_B for discrete distributions, given the probability mass functions.
+#'
+#' Returns a real number in the interval [0,1] that represents the dominance rate of X_A over X_B.
+#'
+#'
+#' @param pMassA The probability mass function where pMassA[[i]] is the probability of x_i, p_A(x_i).
+#' @param pMassB The probability mass function where pMassB[[i]] is the probability of x_i, p_B(x_i).
+#' @return Returns the dominance rate of X_A over X_B for discrete random variables.
+#' @export
+#' @examples
+#' CdFromProbMassFunctions(c(0.2,0.6,0.2), c(0.3,0.3,0.4))
+#' # > 0.6
+#' # Notice how adding additional mass with the same cumulative distribution in both
+#' # random variables does not change the result.
+#' CdFromProbMassFunctions(c(0.2,0.6,0.2,0.2,0.2)/1.4, c(0.3,0.3,0.4,0.2,0.2)/1.4)
+#' # > 0.6
+CdFromProbMassFunctions <- function(pMassA, pMassB) {
+
+  if (length(pMassA) != length(pMassB)) {
+    print("ERROR: pMassA and pMassB need to be of equal length.")
+    return(NULL)
+  }
+
+  pMassA_new <- c(0, pMassA)
+  pMassB_new <- c(0, pMassB)
+
+  F_A <- cumsum(pMassA_new)
+  F_B <- cumsum(pMassB_new)
+
+  cA <- 1
+  cB <- 1
+
+  resA <- 0
+  resB <- 0
+  for (i in 2:length(pMassA_new)) {
+    cat("------------------\ni: ",i,"\n")
+    if(F_A[i-1] == F_B[i-1] && F_A[i] == F_B[i]) # do not update resA and resB
+    {
+      cat("line 669\n")
+
+      cA = cA - pMassA_new[i]
+      cB = cB - pMassB_new[i]
+      next
+    }
+    delta_i <- NULL
+    if( # F_A[i] > F_B[i] and F_A[i-1] > F_B[i-1]
+      (F_A[i-1] >= F_B[i-1] && F_A[i] > F_B[i]) ||
+      (F_A[i-1] > F_B[i-1]  && F_A[i] >= F_B[i])
+    )
+    {
+      cat("line 679\n")
+      delta_i <- 0
+    }else if( # F_B[i] > F_A[i] and F_B[i-1] > F_A[i-1]
+      (F_B[i-1] >= F_A[i-1] && F_B[i] > F_A[i]) ||
+      (F_B[i-1] > F_A[i-1]  && F_B[i] >= F_A[i])
+    )
+    {
+      cat("line 686\n")
+      delta_i <- 1
+    }
+    else if(F_B[i-1] > F_A[i-1] && F_B[i] < F_A[i] ) # if F_B is higher than F_A in x_{i-1} and lower in x_{i}
+    {
+      cat("line 691\n")
+      delta_i <- (F_A[i-1] - F_B[i-1]) / ((F_B[i]- F_B[i-1]) - (F_A[i]- F_A[i-1]))
+    }
+    else if(F_B[i-1] < F_A[i-1] && F_B[i] > F_A[i] ) # if F_A is higher than F_B in x_{i-1} and lower in x_{i}
+    {
+      cat("line 696\n")
+      delta_i <- 1 - ((F_A[i-1] - F_B[i-1]) / ((F_B[i]- F_B[i-1]) - (F_A[i]- F_A[i-1])))
+    }
+    else
+    {
+      print("ERROR: one of the previous if's should have been true.")
+      return(NULL)
+    }
+    resA <- resA + pMassA_new[i]*(1 - delta_i)
+    resB <- resB + pMassB_new[i]*delta_i
+    cat("delta: ",delta_i,"\n")
+    cat("resA: ",resA,"\n")
+    cat("resB: ",resB,"\n")
+  }
+  cat("cA: ",cA,"\n")
+  cat("cB: ",cB,"\n")
+  res <- resA / cA - resB / cB
+  return(res /2 + 0.5)
+}
+
+
+
+
 
 
 
@@ -1227,7 +1319,7 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
   }
 
 
-  # Modify the ranks so that the slope of $X'_A$ plus the slope of $X'_B$ is constant.
+  # Modify the ranks so that the slope of $Y_A$ plus the slope of $Y_B$ is constant.
 
   ranksA <- inv_order[1:n]-1
   ranksB <- inv_order[n+1:m]-1
@@ -1337,41 +1429,6 @@ lowestCommonMultiple <- function(integerArray) {
 
 
 
-#' Get X'_A and X'_B from the observed values of X_A and X_B.
-#'
-#' X'_A and X'_B are two random variables defined in the interval [0,1] that have
-#' the same C_p and C_d as the kernel density estimates of the observed X_A and X_B,
-#' if a sufficiently small uniform kernel is used.
-#' @param X_A_observed array of the samples (real values) of X_A.
-#' @param X_B_observed array of the samples (real values) of X_B.
-#' @param EPSILON (optional, default value 1e-20) when will two values be different.
-#' @return a list with two fields X_prima_A and X_prima_B: each representing the density of the estimated distributions.
-#' @export
-#' @keywords internal
-#' @examples
-#' X_A_observed <- c(0,2,1)
-#' X_B_observed <- c(1,6,1,3)
-#' res <- get_X_prima_AB_density(X_A_observed, X_B_observed)
-#' x = 0:1001/1001
-#' matplot(x,cbind(res$X_prima_A(x),res$X_prima_B(x)),type="l",col=c("red","blue"),
-#'                     ylab='Probability density')
-#' legend(x = c(0.7, 1.0), y = c(2.0, 2.5),legend=c("X'_A", "X'_B"), col=c("red", "blue"),
-#'                     lty=1:2, cex=0.8) # add legend
-get_X_prima_AB_density <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
-
-  ranksObj <- ranksOfObserved(X_A_observed, X_B_observed, EPSILON)
-
-  X_A_ranks <- ranksObj$X_A_ranks
-  X_B_ranks <- ranksObj$X_B_ranks
-  r_max <- ranksObj$r_max
-
-  kernelPositionsA <- X_A_ranks / (r_max + 1) + (0.5 / (r_max+1))
-  kernelPositionsB <- X_B_ranks / (r_max + 1) + (0.5 / (r_max+1))
-
-  kernelSize <- 1 / (r_max + 1)
-
-  return(list("X_prima_A"=mixtureOfUniforms(kernelPositionsA, kernelSize), "X_prima_B"=mixtureOfUniforms(kernelPositionsB, kernelSize)))
-}
 
 
 
@@ -1405,7 +1462,7 @@ helperTrapezoidRule <- function(densitiesVec) {
 
 
 
-#' Helper function for get_X_prima_AB_bounds_bootstrap.
+#' Helper function for get_Y_AB_bounds_bootstrap.
 #'
 #' The density corresponding to the position in index j is computed, given the SORTED ranks, and r_max
 #' @param sortedRanks the sorted ranks of either the observed X_A or X_B.
@@ -1413,7 +1470,7 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' @param j_max the largest index that will be used.
 #' @param cumulative wether the integrable values should be cumulative or not. Cumulative values used in the estimation of the empirical distribution.
 #' @keywords internal
-#' @import Rcpp
+#' @import Rcpp utils
 #' @examples
 #' ### Example 1 ###
 #' j_max <- 12

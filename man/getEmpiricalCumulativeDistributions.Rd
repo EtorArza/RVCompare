@@ -29,11 +29,11 @@ a list with two fields: the empirical distributions of X'A and X'B.
 }
 \description{
 Given the observed sampels of X_A (or X_B) returns the empirical cumulative distribution
-function of X'_A (or X'_B)
+function of Y_A (or Y_B)
 }
 \examples{
 ### Example 1 ###
 c <- getEmpiricalCumulativeDistributions(c(1:5),c(1:3,2:3), 170, EPSILON=1e-20, trapezoid=FALSE)
-plot(c$p, c$X_prima_A_cumulative_estimation, type="l")
-lines(x=c$p, y=c$X_prima_B_cumulative_estimation, col="red")
+plot(c$p, c$Y_A_cumulative_estimation, type="l")
+lines(x=c$p, y=c$Y_B_cumulative_estimation, col="red")
 }

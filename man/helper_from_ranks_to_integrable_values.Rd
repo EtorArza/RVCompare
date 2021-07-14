@@ -2,7 +2,7 @@
 % Please edit documentation in R/RVCompare.R
 \name{helper_from_ranks_to_integrable_values}
 \alias{helper_from_ranks_to_integrable_values}
-\title{Helper function for get_X_prima_AB_bounds_bootstrap.}
+\title{Helper function for get_Y_AB_bounds_bootstrap.}
 \usage{
 helper_from_ranks_to_integrable_values(
   rank_interval_mult,
