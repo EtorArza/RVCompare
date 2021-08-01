@@ -145,7 +145,11 @@
 #'
 get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreMinimumLengthCheck=FALSE) {
 
-
+  if(sum(is.nan(c(X_A_observed, X_B_observed))) != 0)
+  {
+    print("ERROR: X_A_observed or X_B_observed contain NaN values.")
+    return(NULL)
+  }
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
@@ -194,12 +198,23 @@ get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationP
 
   for (i in 1:nOfBootstrapSamples) {
     utils::setTxtProgressBar(pb,i)
-    bootStrapSampleA <- sample(X_A_observed, size= min(n,m), replace=TRUE)
-    bootStrapSampleB <- sample(X_B_observed, size=min(n,m), replace=TRUE)
 
+    if(i==1)
+    {
+      bootStrapSampleA <- X_A_observed
+      bootStrapSampleB <- X_B_observed
+    }
+    else
+    {
+      bootStrapSampleA <- sample(X_A_observed, size=n, replace=TRUE)
+      bootStrapSampleB <- sample(X_B_observed, size=n, replace=TRUE)
+    }
     ranksObj <- ranksOfObserved(bootStrapSampleA, bootStrapSampleB, EPSILON)
 
-
+    if(i==1 || i==2)
+    {
+      cat("\nboot ",i, " --> ", bootStrapSampleA[1:6], "\n")
+    }
 
     r_max <- ranksObj$r_max
 
@@ -218,27 +233,44 @@ get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationP
 
   res$p <- p
 
+  print("preTrapezoid")
+  print((p * 2)[1:6])
+  print(sort(dataA[1,])[1:6])
+  print(sort(dataA[2,])[1:6])
+
+
   dataA <- t(apply(dataA, 1, helperTrapezoidRule))
   dataB <- t(apply(dataB, 1, helperTrapezoidRule))
+
+  print("postTrapezoid")
+  print((p * 2)[1:6])
+  print(sort(dataA[1,])[1:6])
+  print(sort(dataA[2,])[1:6])
+
 
   quantiles <- apply(dataA, 2, stats::quantile, probs = c(alpha_new/2, 0.5, 1.0 - alpha_new/2))
 
 
-  res$Y_A_cumulative_estimation <- quantiles[2,]
+
+  res$Y_A_cumulative_estimation <- dataA[1,]
   res$Y_A_cumulative_lower<- quantiles[1,]
   res$Y_A_cumulative_upper <- quantiles[3,]
 
 
   quantiles <- apply(dataB, 2, stats::quantile, probs = c(alpha_new/2, 0.5, 1.0 - alpha_new/2))
 
-  res$Y_B_cumulative_estimation <- quantiles[2,]
+  res$Y_B_cumulative_estimation <- dataB[1,]
   res$Y_B_cumulative_lower<- quantiles[1,]
   res$Y_B_cumulative_upper <- quantiles[3,]
 
 
-  res$diff_estimation <- res$Y_A_cumulative_estimation - res$Y_B_cumulative_estimation
-  res$diff_upper <- coerceToDifferenceArea(res$p, res$Y_A_cumulative_upper - res$Y_B_cumulative_lower)
-  res$diff_lower <- coerceToDifferenceArea(res$p, res$Y_A_cumulative_lower - res$Y_B_cumulative_upper)
+  quantiles <- apply(dataA - dataB, 2, stats::quantile, probs = c(alpha_new/2, 0.5, 1.0 - alpha_new/2))
+
+
+
+  res$diff_estimation <-  dataA[1,] - dataB[1,] # res$Y_A_cumulative_estimation - res$Y_B_cumulative_estimation
+  res$diff_lower <- quantiles[1,] # coerceToDifferenceArea(res$p, res$Y_A_cumulative_lower - res$Y_B_cumulative_upper)
+  res$diff_upper <- quantiles[3,] # coerceToDifferenceArea(res$p, res$Y_A_cumulative_upper - res$Y_B_cumulative_lower)
 
 
   return(res)
@@ -504,19 +536,21 @@ plot_Y_AB <- function(estimated_Y_AB_bounds, labels=c("X_A","X_B"), plotDifferen
     diff_upper <- estimated_Y_AB_bounds$diff_upper
     diff_lower <- estimated_Y_AB_bounds$diff_lower
     p <- estimated_Y_AB_bounds$p
-    diff_plotdf <- data.frame(p, diff_estimation, diff_lower, diff_upper)
+    zeros <- rep(0, length(p))
+    diff_plotdf <- data.frame(p, diff_estimation, diff_lower, diff_upper,zeros)
 
     resPlot = ggplot2::ggplot() +
       ggplot2::xlim(0,1) +
       ggplot2::ylim(-1,1) +
       ggplot2::geom_ribbon(data = as.data.frame(list("x"=c(0.0,0.5,1.0), "ymax"=c(0.0,1.0,0.0), "ymin"=c(0.0,-1.0,0.0))), ggplot2::aes(x=x, ymin = ymin, ymax = ymax), fill = "#33ccff", alpha = 0.2) +
-      ggplot2::geom_ribbon(data = diff_plotdf, ggplot2::aes(x=p, ymin = diff_lower, ymax = diff_upper), fill = "#000000", alpha = 0.25) +
+      ggplot2::geom_ribbon(data = diff_plotdf, ggplot2::aes(x=p, ymin = diff_lower, ymax = diff_upper), fill = "#000000", alpha = 0.2) +
+      ggplot2::geom_line(data = diff_plotdf, ggplot2::aes(x=p, y=zeros), color='#53868B', size = 0.25, linetype = "dashed") +
       ggplot2::geom_line(data = diff_plotdf, ggplot2::aes(x=p, y=diff_estimation), color='black') +
       ggplot2::annotate("text", x=0.0, y=0.9, label= labels[[1]], color="#000000", hjust = 0) +
       ggplot2::annotate("text", x=0.0, y=-0.9, label= labels[[2]], color="#000000", hjust = 0) +
       ggplot2::xlab('x') +
       ggplot2::theme_minimal() +
-      ggplot2::ylab('difference in cumulative probability')
+      ggplot2::ylab('diff(x)')
     return(resPlot)
 
   }else{

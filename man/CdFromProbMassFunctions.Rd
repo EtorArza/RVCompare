@@ -17,3 +17,11 @@ Returns the dominance rate of X_A over X_B for discrete random variables.
 \description{
 Returns a real number in the interval [0,1] that represents the dominance rate of X_A over X_B.
 }
+\examples{
+CdFromProbMassFunctions(c(0.2,0.6,0.2), c(0.3,0.3,0.4))
+# > 0.6
+# Notice how adding additional mass with the same cumulative distribution in both
+# random variables does not change the result.
+CdFromProbMassFunctions(c(0.2,0.6,0.2,0.2,0.2)/1.4, c(0.3,0.3,0.4,0.2,0.2)/1.4)
+# > 0.6
+}
