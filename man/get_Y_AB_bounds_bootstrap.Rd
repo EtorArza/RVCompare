@@ -7,8 +7,7 @@
 get_Y_AB_bounds_bootstrap(
   X_A_observed,
   X_B_observed,
-  nOfEstimationPoints = 100,
-  alpha = 0.2,
+  alpha = 0.05,
   EPSILON = 1e-20,
   nOfBootstrapSamples = 1000,
   ignoreMinimumLengthCheck = FALSE
@@ -19,9 +18,7 @@ get_Y_AB_bounds_bootstrap(
 
 \item{X_B_observed}{array of the observed samples (real values) of X_B, it needs to have the same length as X_A.}
 
-\item{nOfEstimationPoints}{(optional, default 100) the number of points in the interval [0,1] in which the cumulative density is estimated. Increases computation time.}
-
-\item{alpha}{(optional, default value 0.2) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.}
+\item{alpha}{(optional, default value 0.05) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.}
 
 \item{EPSILON}{(optional, default value 1e-20) minimum difference between two values to be considered different.}
 
@@ -67,7 +64,7 @@ X_B_observed <- rnorm(100, mean = 2.1, sd = 0.5)
 }
 \dontshow{
 # easier on computation for testing.
-res <- get_Y_AB_bounds_bootstrap(X_A_observed, X_B_observed, nOfBootstrapSamples=1e2, nOfEstimationPoints=20)
+res <- get_Y_AB_bounds_bootstrap(X_A_observed, X_B_observed, nOfBootstrapSamples=1e2)
 }
 fig1 = plot_Y_AB(res, plotDifference=FALSE)+ ggplot2::ggtitle("Example 1")
 print(fig1)

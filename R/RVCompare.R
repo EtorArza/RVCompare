@@ -5,6 +5,70 @@
 ################## Main functions ##################
 
 
+#' Generate the cumulative difference-plot
+#'
+#' Generate the cumulative difference-plot given the observed samples using the bootstrap method.
+#'
+#' @param X_A_observed array of the observed samples (real values) of X_A.
+#' @param X_B_observed array of the observed samples (real values) of X_B, it needs to have the same length as X_A.
+#' @param isMinimizationProblem a boolean value where TRUE represents that lower values are preferred to larger values.
+#' @param labelA (optional, default value "X_A") the label corresponding to X_A.
+#' @param labelB (optional, default value "X_B") the label corresponding to X_B.
+#' @param alpha (optional, default value 0.05) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
+#' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
+#' @param nOfBootstrapSamples (optional, default value 1e3) how many bootstrap samples to average. Increases computation time.
+#' @param ignoreMinimumLengthCheck (optional, default value FALSE) whether to check for a minimum length in X_A and X_B.
+#' @return retunrs and shows the cumulative difference-plot
+#' @export
+#' @importFrom utils txtProgressBar
+#' @importFrom utils setTxtProgressBar
+#' @examples
+#'
+#' ### Example 1 ###
+#' X_A_observed <- rnorm(100, mean = 2, sd = 1)
+#' X_B_observed <- rnorm(100, mean = 2.1, sd = 0.5)
+#' \donttest{
+#'  cumulative_difference_plot(X_A_observed, X_B_observed, TRUE, labelA="X_A", labelB="X_B")
+#' }
+#' \dontshow{
+#'  cumulative_difference_plot(X_A_observed, X_B_observed, TRUE, labelA="X_A", labelB="X_B", nOfBootstrapSamples=100)
+#' }
+cumulative_difference_plot <- function(X_A_observed, X_B_observed, isMinimizationProblem, labelA="X_A", labelB="X_B",  alpha=0.05,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreMinimumLengthCheck=FALSE) {
+
+  print(timesTwo(2))
+
+  X_A_observed_copy <- X_A_observed
+  X_B_observed_copy <- X_B_observed
+
+
+  if(!isTRUE(isMinimizationProblem) && !isFALSE(isMinimizationProblem))
+  {
+    stop("ERROR: To compute the cumulative difference-plot, isMinimizationProblem needs to be TRUE or FALSE.
+         isMinimizationProblem=TRUE needs to be used when low values are prefered to high values.
+         isMinimizationProblem=FALSE needs to be used when high values are preferred to low values.")
+  }
+  else if (isFALSE(isMinimizationProblem))
+  {
+    X_A_observed_copy <- - X_A_observed_copy
+    X_B_observed_copy <- - X_B_observed_copy
+  }
+
+
+  Y_AB_estimations <- get_Y_AB_bounds_bootstrap(X_A_observed_copy, X_B_observed_copy, alpha,  EPSILON, nOfBootstrapSamples, ignoreMinimumLengthCheck)
+  res <- plot_Y_AB(Y_AB_estimations, labels = c(labelA,labelB), plotDifference = TRUE)
+  return(res)
+}
+
+
+
+
+
+
+
+
+
+
+
 #' Estimate Y_A and Y_B bounds with bootstrap
 #'
 #' Estimate the confidence intervals for the cumulative distributions of Y_A and Y_B using bootstrap.
@@ -12,8 +76,7 @@
 #'
 #' @param X_A_observed array of the observed samples (real values) of X_A.
 #' @param X_B_observed array of the observed samples (real values) of X_B, it needs to have the same length as X_A.
-#' @param nOfEstimationPoints (optional, default 100) the number of points in the interval [0,1] in which the cumulative density is estimated. Increases computation time.
-#' @param alpha (optional, default value 0.2) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
+#' @param alpha (optional, default value 0.05) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
 #' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
 #' @param nOfBootstrapSamples (optional, default value 1e3) how many bootstrap samples to average. Increases computation time.
 #' @param ignoreMinimumLengthCheck (optional, default value FALSE) wether to check for a minimum length in X_A and X_B.
@@ -41,6 +104,8 @@
 #'
 #'
 #' @export
+#' @importFrom utils txtProgressBar
+#' @importFrom utils setTxtProgressBar
 #' @examples
 #' library(ggplot2)
 #'
@@ -52,7 +117,7 @@
 #' }
 #' \dontshow{
 #' # easier on computation for testing.
-#' res <- get_Y_AB_bounds_bootstrap(X_A_observed, X_B_observed, nOfBootstrapSamples=1e2, nOfEstimationPoints=20)
+#' res <- get_Y_AB_bounds_bootstrap(X_A_observed, X_B_observed, nOfBootstrapSamples=1e2)
 #' }
 #' fig1 = plot_Y_AB(res, plotDifference=FALSE)+ ggplot2::ggtitle("Example 1")
 #' print(fig1)
@@ -143,22 +208,24 @@
 #' print(fig)
 #' }
 #'
-get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationPoints=100, alpha=0.2,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreMinimumLengthCheck=FALSE) {
+get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, alpha=0.05,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreMinimumLengthCheck=FALSE) {
+
+  nOfEstimationPoints = 2000
 
   if(sum(is.nan(c(X_A_observed, X_B_observed))) != 0)
   {
     print("ERROR: X_A_observed or X_B_observed contain NaN values.")
-    return(NULL)
+    stop()
   }
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
-    return(NULL)
+    stop()
   }
 
   if (alpha > 1 || alpha <= 0.0) {
     print("ERROR: alpha must be defined in the interval (0,1). It represents the error of the CI.")
-    return(NULL)
+    stop()
   }
 
   if(!ignoreMinimumLengthCheck)
@@ -167,14 +234,14 @@ get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationP
     print("ERROR: X_A_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreMinimumLengthCheck = TRUE (not recomended!)")
-    return(NULL)
+    stop()
   }
 
   if(!xHasEnoughValues(X_B_observed, 100)) {
     print("ERROR: X_B_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreMinimumLengthCheck = TRUE (not recomended!)")
-    return(NULL)
+    stop()
   }
   }
 
@@ -184,7 +251,7 @@ get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationP
 
   if (length(n) != length(m)) {
     print("ERROR: X_A_observed and X_B_observed need to be of equal length.")
-    return(NULL)
+    stop()
   }
 
 
@@ -211,15 +278,16 @@ get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationP
     }
     ranksObj <- ranksOfObserved(bootStrapSampleA, bootStrapSampleB, EPSILON)
 
-    if(i==1 || i==2)
-    {
-      cat("\nboot ",i, " --> ", bootStrapSampleA[1:6], "\n")
-    }
+    # if(i==1 || i==2)
+    # {
+    #   cat("\nboot ",i, " --> ", bootStrapSampleA[1:6], "\n")
+    # }
 
     r_max <- ranksObj$r_max
+    r_max <- n
 
-    dataA[i,] <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max)
-    dataB[i,] <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max)
+    dataA[i,] <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, j_max = j_max)
+    dataB[i,] <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, j_max = j_max)
   }
   alpha_new <- 1 - sqrt(1-alpha)
   # matplot(dataA, type = c("l"),pch=1, xlab = "density dataA") #plot
@@ -233,19 +301,23 @@ get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationP
 
   res$p <- p
 
-  print("preTrapezoid")
-  print((p * 2)[1:6])
-  print(sort(dataA[1,])[1:6])
-  print(sort(dataA[2,])[1:6])
+  # print("")
+  # print("preTrapezoid")
+  # print((p * 2)[1:6])
+  # print(sort(dataA[1,])[1:6])
+  # print(sort(dataA[2,])[1:6])
 
 
   dataA <- t(apply(dataA, 1, helperTrapezoidRule))
   dataB <- t(apply(dataB, 1, helperTrapezoidRule))
 
-  print("postTrapezoid")
-  print((p * 2)[1:6])
-  print(sort(dataA[1,])[1:6])
-  print(sort(dataA[2,])[1:6])
+  # print("postTrapezoid")
+  # print((p * 2)[1:6])
+  # print(sort(dataA[1,])[1:6])
+  # print(sort(dataA[2,])[1:6])
+  #
+  # print(which(is.na(dataA)))
+  # print(which(is.na(dataB)))
 
 
   quantiles <- apply(dataA, 2, stats::quantile, probs = c(alpha_new/2, 0.5, 1.0 - alpha_new/2))
@@ -289,7 +361,7 @@ get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationP
 #' @param X_A_observed array of the observed samples (real values) of X_A.
 #' @param X_B_observed array of the observed samples (real values) of X_B.
 #' @param nOfEstimationPoints (optional, default 1000) the number of points in the interval [0,1] in which the density is estimated.
-#' @param alpha (optional, default value 0.2) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
+#' @param alpha (optional, default value 0.05) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.
 #' @param EPSILON (optional, default value 1e-20) minimum difference between two values to be considered different.
 #' @param ignoreMinimumLengthCheck (optional, default value FALSE) wether to check for a minimum length in X_A and X_B.
 #' @return Returns a list with the following fields:
@@ -400,17 +472,17 @@ get_Y_AB_bounds_bootstrap <- function(X_A_observed, X_B_observed, nOfEstimationP
 #' ggtitle("300 samples used in the estimation")
 #' print(fig)
 #'}
-get_Y_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=1000, alpha=0.2,  EPSILON=1e-20, ignoreMinimumLengthCheck=FALSE) {
+get_Y_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=1000, alpha=0.05,  EPSILON=1e-20, ignoreMinimumLengthCheck=FALSE) {
 
   if (EPSILON > 0.1 || EPSILON <= 0.0) {
     print("ERROR: EPSILON must be in the interval (0,0.1).")
-    return(NULL)
+    stop()
 
   }
 
   if (alpha > 1 || alpha <= 0.0) {
     print("ERROR: alpha must be defined in the interval (0,1). It represents the error of the CI.")
-    return(NULL)
+    stop()
   }
 
   if(!ignoreMinimumLengthCheck)
@@ -419,14 +491,14 @@ get_Y_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=
     print("ERROR: X_A_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreMinimumLengthCheck = TRUE (not recomended!)")
-    return(NULL)
+    stop()
   }
 
   if(!xHasEnoughValues(X_B_observed, 100)) {
     print("ERROR: X_B_observed does not have enough values. This means that the confidence intervals cannot be accurately computed.")
     print("At least 100 samples are required.")
     print("If you knwon what you are doing and want to proceed ignoring this error, use parameter ignoreMinimumLengthCheck = TRUE (not recomended!)")
-    return(NULL)
+    stop()
   }
   }
 
@@ -440,7 +512,7 @@ get_Y_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=
 
   if (length(n) != length(m)) {
     print("ERROR: X_A_observed and X_B_observed need to be of equal length.")
-    return(NULL)
+    stop()
   }
 
   j_max <- nOfEstimationPoints-1
@@ -612,14 +684,14 @@ getEmpiricalCumulativeDistributions <- function(X_A_observed, X_B_observed, nOfE
   res <- list()
   if (trapezoid)
   {
-    res$Y_A_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max))
-    res$Y_B_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max))
+    res$Y_A_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, j_max = j_max))
+    res$Y_B_cumulative_estimation <- helperTrapezoidRule(helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, j_max = j_max))
   }
   else
   {
 
-    res$Y_A_cumulative_estimation <- c(0, helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max-1, cumulative = TRUE))
-    res$Y_B_cumulative_estimation <- c(0, helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max-1, cumulative = TRUE))
+    res$Y_A_cumulative_estimation <- c(0, helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, j_max = j_max-1, cumulative = TRUE))
+    res$Y_B_cumulative_estimation <- c(0, helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, j_max = j_max-1, cumulative = TRUE))
 
     # dataA <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multA, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max, cumulative = FALSE)
     # dataB <- helper_from_ranks_to_integrable_values(ranksObj$rank_interval_multB, ranksObj$rank_interval_lengths, r_max = r_max, j_max = j_max, cumulative = FALSE)
@@ -691,7 +763,7 @@ CdFromProbMassFunctions <- function(pMassA, pMassB) {
 
   if (length(pMassA) != length(pMassB)) {
     print("ERROR: pMassA and pMassB need to be of equal length.")
-    return(NULL)
+    stop()
   }
 
   pMassA_new <- c(0, pMassA)
@@ -738,7 +810,7 @@ CdFromProbMassFunctions <- function(pMassA, pMassB) {
     else
     {
       print("ERROR: one of the previous if's should have been true.")
-      return(NULL)
+      stop()
     }
     resA <- resA + pMassA_new[i]*(1 - delta_i)
     resB <- resB + pMassB_new[i]*delta_i
@@ -824,20 +896,20 @@ CdFromDensities <- function(densityX_A, densityX_B, xlims, EPSILON = 1e-3) {
 
   if(!isXlimsValid(xlims))
   {
-    return(NULL)
+    stop()
   }
 
 
   if(!isFunctionDensity(densityX_A, xlims))
   {
     print("ERROR: argument densityX_A is not a non discrete probability density function.")
-    return(NULL)
+    stop()
   }
 
   if(!isFunctionDensity(densityX_B, xlims))
   {
     print("ERROR: argument densityX_B is not a non discrete probability density function.")
-    return(NULL)
+    stop()
   }
 
   cumX_A = cumulativeFromDensity(densityX_A, xlims)
@@ -921,19 +993,19 @@ CpFromDensities <- function(densityX_A, densityX_B, xlims) {
 
   if(!isXlimsValid(xlims))
   {
-    return(NULL)
+    stop()
   }
 
   if(!isFunctionDensity(densityX_A, xlims))
   {
     print("ERROR: argument densityX_A is not a non discrete probability density function.")
-    return(NULL)
+    stop()
   }
 
   if(!isFunctionDensity(densityX_B, xlims))
   {
     print("ERROR: argument densityX_B is not a non discrete probability density function.")
-    return(NULL)
+    stop()
   }
 
   f_to_integrate = function(y) { sapply(y, function(x) {densityX_A(x) * stats::integrate(densityX_B, lower=x, upper=xlims[[2]])$value}) }
@@ -1082,15 +1154,15 @@ normalDensity <- function(mu, sigma) {
   # parameter checks
   if (class(mu) != "numeric") {
     print("ERROR: mu is not numeric.")
-    return(NULL)
+    stop()
   }
   if (class(sigma) != "numeric") {
     print("ERROR: sigma is not numeric.")
-    return(NULL)
+    stop()
   }
   if (sigma <= 0) {
     print("ERROR: sigma needs to be positive.")
-    return(NULL)
+    stop()
   }
 
   return(function(x) stats::dnorm(x, mean = mu, sd = sigma))
@@ -1117,7 +1189,7 @@ uniformDensity <- function(xlims) {
   # parameter checks
   if (!isXlimsValid(xlims)) {
     print("ERROR: xlims in not correctly defined.")
-    return(NULL)
+    stop()
   }
 
   return(function(x) stats::dunif(x, min=xlims[[1]], max=xlims[[2]]))
@@ -1149,7 +1221,7 @@ mixtureDensity <- function(densities, weights=NULL) {
   # parameter checks
   if (length(densities) < 2) {
     print("ERROR: At least 2 distributions are required.")
-    return(NULL)
+    stop()
   }
 
   n = length(densities)
@@ -1162,7 +1234,7 @@ mixtureDensity <- function(densities, weights=NULL) {
 
   if (abs(sum(weights) - 1.0) > 1e-6) {
     print("ERROR: the sum of the weights must be 1.0.")
-    return(NULL)
+    stop()
   }
 
   res <- function(x)
@@ -1197,7 +1269,7 @@ sampleFromDensity <- function(density, nSamples, xlims, nIntervals=1e5) {
   # parameter checks
   if (!isXlimsValid(xlims)) {
     print("ERROR: xlims in not correctly defined.")
-    return(NULL)
+    stop()
   }
   X <- 0:nIntervals / nIntervals * (xlims[[2]] - xlims[[1]]) + xlims[[1]]
   interval_size <- X[[2]] -  X[[1]]
@@ -1288,13 +1360,13 @@ isXlimsValid <- function(xlims) {
 cumulativeFromDensity <- function(densityX, xlims, sanityChecks = TRUE) {
   if(!isXlimsValid(xlims))
   {
-    return(NULL)
+    stop()
   }
   if (sanityChecks) {
     if(!isFunctionDensity(densityX, xlims))
     {
       print("ERROR: argument densityX_A is not a non discrete probability density function.")
-      return(NULL)
+      stop()
     }
   }
 
@@ -1362,53 +1434,48 @@ ranksOfObserved <- function(X_A_observed, X_B_observed, EPSILON=1e-20) {
 
 
   # n = m
-  rank_interval_multA <- numeric(max_rank+1)
-  rank_interval_multB <- numeric(max_rank+1)
+  rank_interval_multA <- c()
+  rank_interval_multB <- c()
   rank_interval_lengths <- numeric(max_rank+1)
 
-
+  pos_in_ranks <- 1
   for (rank in 0:max_rank) {
 
     rank_string <- toString(rank)
 
     interval_length <- tabRanksAll[[rank_string]]
 
-    nAddNewRanksA <- lcm_on_number_of_repeated_ranks / tabRanksAll[[rank_string]] * tabRanksA[[rank_string]]
-    nAddNewRanksB <- lcm_on_number_of_repeated_ranks / tabRanksAll[[rank_string]] * tabRanksB[[rank_string]]
+    nAddNewRanksA <- tabRanksA[[rank_string]]
+    nAddNewRanksB <- tabRanksB[[rank_string]]
 
 
-    rank_interval_multA[[rank + 1]] <- nAddNewRanksA
-    rank_interval_multB[[rank + 1]] <- nAddNewRanksB
+    rank_interval_multA <- c(rank_interval_multA, rep(nAddNewRanksA, interval_length) / interval_length)
+    rank_interval_multB <- c(rank_interval_multB, rep(nAddNewRanksB, interval_length) / interval_length)
     rank_interval_lengths[[rank + 1]] <- interval_length
 
 
   }
 
 
-  # ranksOfObserved(c(0.1,0.2,0.5), c(0.2,0.4,0.5))
+  # ranksOfObserved(c(0.1,0.2,0.5,0.5), c(0.0,0.2,0.4,0.5))
   # # Desired ouput ->
   # $rank_interval_multA
-  # [1] 2 1 0 1
+  # [1] 0 1 0.5 0.5 0 0.67 0.67 0.67
   #
   # $rank_interval_multB
-  # [1] 0 1 2 1
+  # [1] 1 0 0.5 0.5 1 0.33 0.33 0.33
   #
   # $rank_interval_lengths
-  # [1] 1 2 1 2
+  # [1] 1 1 2 1 3
   #
   # $r_max
   # [1] 5
 
-  # # explanation -> we need the slope two be half when two ranks are shared in both positions.
-  # thus, we duplicate the slope in the rest of the positions.
-  # when many values are repeated memory is wasted, and that is why we encode it as the number of reps
-  # in each case and the 'length' of the interval.
-  # This encoding is supposed to represent the following ranks in this example:
-  #
-  # $X_A_ranks
-  # [1] 0 0  1 2       4 5
-  # $X_B_ranks
-  # [1]      1 2  3 3  4 5
+  # the sum of rank_interval_multA and rank_interval_multB should be 1.
+  # This represents that the slope is constant.
+  # To achieve this, in case of repetitions, we increase the interval length
+  # and the values of rank_interval_multA and rank_interval_multB represent the proportion
+  # of samples in A and in B respectively.
 
   return(list("rank_interval_multA"=rank_interval_multA, "rank_interval_multB"=rank_interval_multB, "rank_interval_lengths"=rank_interval_lengths, "r_max"= sum(rank_interval_lengths)-1))
 }
@@ -1476,6 +1543,8 @@ lowestCommonMultiple <- function(integerArray) {
 #' @return a vector in which each index i is the integral in the interval
 #' (0, p[[i]]). Consequently, the first element in the vector returned
 #' will be 0, since p[[1]] = 0 does not exist.
+#' @importFrom utils tail
+#' @importFrom utils head
 #' @export
 #' @examples
 #' ### Example 1 ###
@@ -1498,113 +1567,75 @@ helperTrapezoidRule <- function(densitiesVec) {
 #' @param j_max the largest index that will be used.
 #' @param cumulative wether the integrable values should be cumulative or not. Cumulative values used in the estimation of the empirical distribution.
 #' @keywords internal
-#' @import Rcpp utils
+#' @import Rcpp
 #' @examples
 #' ### Example 1 ###
-#' j_max <- 12
-#' r_max <- 6
-#' rank_interval_mult <- c(4,7,0,1,0)
-#' rank_interval_lengths <- c(1,1,1,2,2)
-#' densities <- helper_from_ranks_to_integrable_values(
-#'              rank_interval_mult=rank_interval_mult, rank_interval_lengths=rank_interval_lengths, r_max=r_max, j_max=j_max)
+#' rank_interval_mult <- c(1,0.5,1,0,0,0.5)
+#' j_max <- 1000 -1
+#' densities <- helper_from_ranks_to_integrable_values(rank_interval_mult, j_max, cumulative=FALSE)
 #' plot(x = 0:j_max / j_max, y = densities, type="l")
-#' # 0.9347826 0.9782609 1.0000000 1.0000000 1.0000000 1.0000000
-#' print(utils::tail(helperTrapezoidRule(densities)))
-#' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
 #'
-#' ### Example 2 ###
-#' j_max <- 12
-#' r_max <- 19
-#' # sortedRanks <-          c(0,0,1,1,   3,    5, 6,   18, 19)
-#' rank_interval_mult <-     c(2,      0, 1, 0, 1,   0  ,1 ,1)
-#' rank_interval_lengths <-  c(2,      1, 1, 1, 2,   11 ,1 ,1)
-#' densities <- helper_from_ranks_to_integrable_values(
-#'              rank_interval_mult=rank_interval_mult, rank_interval_lengths=rank_interval_lengths, r_max=r_max, j_max=j_max)
-#' plot(x = 0:j_max / j_max, y = densities, type="l")
-#' # 0.8000000 0.8000000 0.8000000 0.8000000 0.8666667 1.0000000
-#' print(utils::tail(helperTrapezoidRule(densities)))
-#' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
-#'
-#' ### Example 3 ###
-#' j_max <- 12
-#' r_max <- 8
-#' # sortedRanks <-          c(   1,1,   3,    5, 6)
-#' rank_interval_mult <-     c(0, 2,  0, 1, 0, 1, 1)
-#' rank_interval_lengths <-  c(1, 1,  1, 1, 1, 1, 1)
-#' densities <- helper_from_ranks_to_integrable_values(
-#'              rank_interval_mult=rank_interval_mult, rank_interval_lengths=rank_interval_lengths, r_max=r_max, j_max=j_max)
-#' plot(x = 0:j_max / j_max, y = densities, type="l")
-#' # 0.6428571 0.7857143 0.9285714 1.0000000 1.0000000 1.0000000
-#' print(utils::tail(helperTrapezoidRule(densities)))
-#' plot(x = 0:j_max / j_max, y = helperTrapezoidRule(densities), type="l")
+#' cumulative_densities <- helper_from_ranks_to_integrable_values(
+#'     rank_interval_mult, j_max, cumulative=TRUE)
+#' plot(x = 0:j_max / j_max, y = cumulative_densities, type="l")
 #' @export
 #' @return the probability density in this point
-helper_from_ranks_to_integrable_values <- function(rank_interval_mult, rank_interval_lengths, r_max, j_max, cumulative = FALSE) {
+helper_from_ranks_to_integrable_values <- function(rank_interval_mult, j_max, cumulative = FALSE) {
 
+cpp_helper_from_ranks_to_integrable_values <- NULL
 
-
-cppFunction('NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVector rank_interval_mult, NumericVector rank_interval_lengths_cumsum, int r_max, int j_max, bool cumulative)
+cppFunction('NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVector rank_interval_mult, int j_max)
 {
   NumericVector j_vec(j_max +1);
 
-  int last_biggest_index = 0;
 
   double p_corresponding_to_j;
-  int biggest_rank_that_has_a_lower_pos_than_j_in_p_terms;
-  bool k_was_updated;
-  int n_times = 0;
-
-
-  int index_rank_interval_mul = 0;
-  int rank_interval_mul_lower = 0;
-  int rank_interval_mul_upper = rank_interval_lengths_cumsum[0] - 1;
-
-
+  int r_last = 0;
+  int r_current = 0;
+  double value_in_j_vec = rank_interval_mult[0];
+  int r_max = rank_interval_mult.length()-1;
 
   // j goes from 0 to j_max
   for (int j = 0; j <= j_max; j++)
   {
     p_corresponding_to_j = (double) j / (double) j_max;
-    biggest_rank_that_has_a_lower_pos_than_j_in_p_terms = -1;
-    k_was_updated = false;
 
     // Find which rank corresponds to position j in j_vec
-    for (int k = last_biggest_index; k <= r_max; k++)
+    for (int k = r_last; k <= r_max; k++)
     {
       if ((double) k / (double) (r_max+1) <= p_corresponding_to_j) {
-        biggest_rank_that_has_a_lower_pos_than_j_in_p_terms = k;
-        k_was_updated = true;
+        r_current = k;
       }else{
-        last_biggest_index = biggest_rank_that_has_a_lower_pos_than_j_in_p_terms;
         break;
       }
     }
 
 
 
-
-
-    if(k_was_updated) // n_times = count how many times biggest_rank_that_has_a_lower_pos_than_j_in_p_terms is in sortedRanks
+    // measure the amount increased in cumulative, or the actual density in non cumulative
+    // only if the r_current was updated.
+    if(r_current != r_last)
     {
-
-    // while biggest_rank_that_has_a_lower_pos_than_j_in_p_terms not in the interval [rank_interval_mul_lower, rank_interval_mul_upper]
-      while (biggest_rank_that_has_a_lower_pos_than_j_in_p_terms < rank_interval_mul_lower ||  biggest_rank_that_has_a_lower_pos_than_j_in_p_terms > rank_interval_mul_upper)
+      double sumOfRanks = 0;
+      for (int k = r_last+1; k <= r_current; k++)
       {
-        index_rank_interval_mul++;
-        rank_interval_mul_lower = rank_interval_lengths_cumsum[index_rank_interval_mul - 1];
-        rank_interval_mul_upper = rank_interval_lengths_cumsum[index_rank_interval_mul] - 1;
+          sumOfRanks += rank_interval_mult[k];
       }
-      if(cumulative)
+
+
+      if(sumOfRanks == 0)
       {
-        n_times += rank_interval_mult[index_rank_interval_mul];
+        value_in_j_vec = 0;
       }
       else
       {
-        n_times = rank_interval_mult[index_rank_interval_mul];
+        value_in_j_vec = sumOfRanks / (r_current - r_last);
       }
 
     }
-    j_vec[j] = n_times;
+
+    j_vec[j] = value_in_j_vec;
+    r_last = r_current;
   }
 
   return(j_vec);
@@ -1612,13 +1643,16 @@ cppFunction('NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVec
 
 
   # since the integral needs to be 1, we need that sum_{j=0:(j_max-1)}(density in p_j * interval_length) = 1, where p_j = p[[j+1]].
-  j_vec <- cpp_helper_from_ranks_to_integrable_values(rank_interval_mult, cumsum(rank_interval_lengths), r_max, j_max, cumulative)
+  j_vec <- cpp_helper_from_ranks_to_integrable_values(rank_interval_mult, j_max)
+  j_vec <- j_vec / sum(j_vec) * j_max
 
   if (!cumulative) {
-    return(j_vec / utils::tail(helperTrapezoidRule(j_vec),1))
+    return(j_vec)
   }else
   {
-    return(j_vec / tail(j_vec,1))
+    res <- cumsum(j_vec)
+    res <- res / res[[length(res)]]
+    return(res)
   }
 
 

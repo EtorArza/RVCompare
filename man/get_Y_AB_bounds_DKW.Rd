@@ -8,7 +8,7 @@ get_Y_AB_bounds_DKW(
   X_A_observed,
   X_B_observed,
   nOfEstimationPoints = 1000,
-  alpha = 0.2,
+  alpha = 0.05,
   EPSILON = 1e-20,
   ignoreMinimumLengthCheck = FALSE
 )
@@ -20,7 +20,7 @@ get_Y_AB_bounds_DKW(
 
 \item{nOfEstimationPoints}{(optional, default 1000) the number of points in the interval [0,1] in which the density is estimated.}
 
-\item{alpha}{(optional, default value 0.2) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.}
+\item{alpha}{(optional, default value 0.05) the error of the confidence interval. If alpha = 0.05 then we have 95 percent confidence interval.}
 
 \item{EPSILON}{(optional, default value 1e-20) minimum difference between two values to be considered different.}
 
