@@ -16,9 +16,22 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cpp_helper_from_ranks_to_integrable_values
+NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVector rank_interval_mult, int j_max);
+RcppExport SEXP _RVCompare_cpp_helper_from_ranks_to_integrable_values(SEXP rank_interval_multSEXP, SEXP j_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type rank_interval_mult(rank_interval_multSEXP);
+    Rcpp::traits::input_parameter< int >::type j_max(j_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_helper_from_ranks_to_integrable_values(rank_interval_mult, j_max));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_RVCompare_timesTwo", (DL_FUNC) &_RVCompare_timesTwo, 1},
+    {"_RVCompare_cpp_helper_from_ranks_to_integrable_values", (DL_FUNC) &_RVCompare_cpp_helper_from_ranks_to_integrable_values, 2},
     {NULL, NULL, 0}
 };
 

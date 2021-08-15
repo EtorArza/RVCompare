@@ -9,3 +9,12 @@ timesTwo <- function(x) {
     .Call('_RVCompare_timesTwo', PACKAGE = 'RVCompare', x)
 }
 
+#' Helper function for from_ranks_to_integrable_values
+#'
+#' @param rank_interval_mult the value of the normalized density of Y_A.
+#' @param j_max maximum number of sample points.
+#'
+cpp_helper_from_ranks_to_integrable_values <- function(rank_interval_mult, j_max) {
+    .Call('_RVCompare_cpp_helper_from_ranks_to_integrable_values', PACKAGE = 'RVCompare', rank_interval_mult, j_max)
+}
+
