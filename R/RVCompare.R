@@ -1,5 +1,13 @@
-# library(stats)
-# library(pracma)
+#' RVCompare: Compare Real Valued Random Variables
+#'
+#' A framework with tools to compare two random variables, and determine which of them produces lower values. It can compute the Cp and Cd of theoretical of probability distributions, as explained in E. Arza (2021) <https://github.com/EtorArza/RVCompare-paper/releases>. Given the observed samples of two random variables X_A and X_B, it can compute the confidence bands of the cumulative distributions of X'_A and X'_B (see E. Arza (2021) <https://github.com/EtorArza/RVCompare-paper> for details) based on the observed samples of X_A and X_B. Uses bootstrap and DKW-bounds to compute the confidence bands of the cumulative distributions. These two methods are described in B. Efron. (1979) <doi:10.1214/aos/1176344552> and P. Massart (1990) <doi:10.1214/aop/1176990746>.
+#'
+#' @docType package
+#' @author Etor Arza <etorarza@gmail.com>
+#' @import Rcpp ggplot2 pracma
+#' @useDynLib RVCompare
+#' @name RVCompare
+NULL
 
 
 ################## Main functions ##################
@@ -22,6 +30,7 @@
 #' @export
 #' @importFrom utils txtProgressBar
 #' @importFrom utils setTxtProgressBar
+#' @import Rcpp
 #' @examples
 #'
 #' ### Example 1 ###
@@ -35,7 +44,6 @@
 #' }
 cumulative_difference_plot <- function(X_A_observed, X_B_observed, isMinimizationProblem, labelA="X_A", labelB="X_B",  alpha=0.05,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreMinimumLengthCheck=FALSE) {
 
-  print(timesTwo(2))
 
   X_A_observed_copy <- X_A_observed
   X_B_observed_copy <- X_B_observed
