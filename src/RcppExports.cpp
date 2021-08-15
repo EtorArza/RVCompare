@@ -5,17 +5,6 @@
 
 using namespace Rcpp;
 
-// timesTwo
-int timesTwo(int x);
-RcppExport SEXP _RVCompare_timesTwo(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(timesTwo(x));
-    return rcpp_result_gen;
-END_RCPP
-}
 // cpp_helper_from_ranks_to_integrable_values
 NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVector rank_interval_mult, int j_max);
 RcppExport SEXP _RVCompare_cpp_helper_from_ranks_to_integrable_values(SEXP rank_interval_multSEXP, SEXP j_maxSEXP) {
@@ -30,7 +19,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_RVCompare_timesTwo", (DL_FUNC) &_RVCompare_timesTwo, 1},
     {"_RVCompare_cpp_helper_from_ranks_to_integrable_values", (DL_FUNC) &_RVCompare_cpp_helper_from_ranks_to_integrable_values, 2},
     {NULL, NULL, 0}
 };
