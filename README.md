@@ -96,10 +96,16 @@ PL_GS_fitness <- c(
 ```
 
 ## Step 1: Visualizing the data
-The first step is to visualize the data with a simple visualization tool such as a Box-plot or a histogram.
+The first step is to visualize the data with a simple visualization tool such as a box-plot or a histogram.
 
 ```R
 boxplot(x = list("PL_EDA_fitness"=PL_EDA_fitness, "PL_GS_fitness"=PL_GS_fitness))
 ```
+
+![box-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/boxplot_example.png?raw=true)
+
+
+Unfortunately, the box-plot is not a great tool to compare the two algorithms due to their similarity in performance and the amount of outliers.
+
 
 
