@@ -42,6 +42,7 @@ NULL
 #'
 #' ### Example 2 ###
 #' # Comparing the optimization algorithms PL-EDA and PL-GS
+#' # with 400 samples each.
 #' PL_EDA_fitness <- c(
 #' 52235, 52485, 52542, 52556, 52558, 52520, 52508, 52491, 52474, 52524,
 #' 52414, 52428, 52413, 52457, 52437, 52449, 52534, 52531, 52476, 52434,
@@ -127,7 +128,11 @@ NULL
 #' 52479, 52515, 52210, 52485, 52516, 52504, 52521, 52499, 52503, 52526)
 #' # Considering that the LOP is a maximization problem, we need isMinimizationProblem=FALSE.
 #' \donttest{
-#'  cumulative_difference_plot(PL_EDA_fitness, PL_GS_fitness, isMinimizationProblem=FALSE, labelA="PL-EDA", labelB="PL-GS")
+#'  cumulative_difference_plot(PL_EDA_fitness,
+#'                             PL_GS_fitness,
+#'                             isMinimizationProblem=FALSE,
+#'                             labelA="PL-EDA",
+#'                             labelB="PL-GS")
 #' }
 cumulative_difference_plot <- function(X_A_observed, X_B_observed, isMinimizationProblem, labelA="X_A", labelB="X_B",  alpha=0.05,  EPSILON=1e-20, nOfBootstrapSamples=1e3, ignoreMinimumLengthCheck=FALSE) {
 
