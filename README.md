@@ -126,7 +126,7 @@ cumulative_difference_plot(X_A_observed=PL_EDA_fitness,
                             labelB="PL-GS")
 ```
 
-![cumulative differencec-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_raw.png?raw=true | width=100)
+![cumulative differencec-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_raw.png?raw=true){:height="700px" width="400px"}
 
 
 ## Step 3: Interpretation
@@ -136,7 +136,7 @@ cumulative_difference_plot(X_A_observed=PL_EDA_fitness,
  To deduce this probability from the graph, we compute the difference between the area on top of diff(x)=0 and the area under diff(x)=0, and we add 0.5 to this difference.
  In this example, the estimated probability estimation is (A1 - A2 + A3 - A4) + 0.5. 
  
- ![cumulative difference-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cp.png?raw=true | width=100)
+ ![cumulative difference-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cp.png?raw=true){:height="700px" width="400px"}
 
 
 - **B.- Neither algorithm dominates the other one, and what is more, the dominance rate is near 0.5**
@@ -144,7 +144,7 @@ cumulative_difference_plot(X_A_observed=PL_EDA_fitness,
  The dominance rate can be deduced from the graph by measuring the poportion in which the difference is positive. 
  In this example, the dominance rate is B1 + B2.
 
- ![cumulative difference-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cd.png?raw=true | width=100)
+ ![cumulative difference-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cd.png?raw=true){:height="700px" width="400px"}
 
 
 - **C.- Neither algorithm dominates the other one, and what is more, the dominance rate is near 0.5**
