@@ -127,7 +127,7 @@ cumulative_difference_plot(X_A_observed=PL_EDA_fitness,
 ```
 
 
-<img src="https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_raw.png?raw=true" width="48">
+<img src="https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_raw.png?raw=true" width="500">
 
 
 ## Step 3: Interpretation
@@ -138,7 +138,7 @@ cumulative_difference_plot(X_A_observed=PL_EDA_fitness,
  In this example, the estimated probability estimation is (A1 - A2 + A3 - A4) + 0.5. 
  
  
- <img src="https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cp.png?raw=true" width="48">
+ <img src="https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cp.png?raw=true" width="500">
 
 
 
@@ -148,7 +148,7 @@ cumulative_difference_plot(X_A_observed=PL_EDA_fitness,
  In this example, the dominance rate is B1 + B2.
 
 
- <img src="https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cd.png?raw=true" width="48">
+ <img src="https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cd.png?raw=true" width="500">
 
 
 - **C.- Neither algorithm dominates the other one, and what is more, the dominance rate is near 0.5**
