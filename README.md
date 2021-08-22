@@ -105,7 +105,29 @@ boxplot(x = list("PL_EDA_fitness"=PL_EDA_fitness, "PL_GS_fitness"=PL_GS_fitness)
 ![box-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/boxplot_example.png?raw=true)
 
 
-Unfortunately, the box-plot is not a great tool to compare the two algorithms due to their similarity in performance and the amount of outliers.
+Unfortunately, in this case, the box-plot does not show a result that can be used to compare the two algorithms.
+In part, this is due to their similarity in performance but it is also because of the large amount of outliers.
+This is the kind of situation in which the cumulative difference-plot can help.
+
+
+## Step 2: Building the cumulative difference graph
+
+The Linear Ordering Problem is a maximization problem, therefore we need isMinimizationProblem=FALSE.
+The cumulative difference-plot needs to know if it is a maximization or a minimization problem, because the best values are compared in the left side of the plot, while the worst are compared at the right side of the plot. 
+
+```R
+library("RVCompare")
+cumulative_difference_plot(PL_EDA_fitness,
+                           PL_GS_fitness,
+                           isMinimizationProblem=FALSE,
+                           labelA="PL-EDA",
+                           labelB="PL-GS")
+```
+
+![box-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_raw.png?raw=true)
+
+
+
 
 
 
