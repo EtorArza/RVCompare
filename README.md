@@ -113,18 +113,40 @@ This is the kind of situation in which the cumulative difference-plot can help.
 ## Step 2: Building the cumulative difference graph
 
 The Linear Ordering Problem is a maximization problem, therefore we need isMinimizationProblem=FALSE.
-The cumulative difference-plot needs to know if it is a maximization or a minimization problem, because the best values are compared in the left side of the plot, while the worst are compared at the right side of the plot. 
+The cumulative difference-plot needs to know if it is a maximization or a minimization problem, because the best values are compared in the left side of the plot, while the worst are compared at the right side of the plot.
+With the code below, we can generate the cumulative difference-plot.
+By default, the confidence level of the confidence band is 95%.
 
 ```R
 library("RVCompare")
-cumulative_difference_plot(PL_EDA_fitness,
-                           PL_GS_fitness,
-                           isMinimizationProblem=FALSE,
-                           labelA="PL-EDA",
-                           labelB="PL-GS")
+cumulative_difference_plot(X_A_observed=PL_EDA_fitness,
+                            X_B_observed=PL_GS_fitness,
+                            isMinimizationProblem=FALSE,
+                            labelA="PL-EDA",
+                            labelB="PL-GS")
 ```
 
 ![box-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_raw.png?raw=true)
+
+
+## Step 3: Interpretation
+
+- A.- The probability that PL-GS obtains a better score than PL-EDA is a little higher than 0.5.
+⋅⋅⋅ <font size="1">To deduce this probability from the graph, we compute the difference between the area under diff(x) and the area on top of diff(x)=0.</font>
+
+
+
+ have similar probabilities, as $\mathcal{C}_\mathcal{P}(\textit{PL-EDA},\textit{PL-GS}) \approx 0.5$. However, The area under $\diff(x)=0$ is a little larger than the area over $\diff(x)=0$, hence $\mathcal{P}(x_{eda} < x_{gs})$ is a little smaller than $\mathcal{P}(x_{gs} < x_{eda})$.	
+- Neither algorithm dominates the other one, and what is more, $\mathcal{C}_\mathcal{D}(\textit{PL-EDA},\textit{PL-GS}) \approx 0.5$.
+- The difference is positive when $x < 0.3$, and therefore, if we only consider the best $30\%$ values of both algorithms, \textit{PL-EDA} dominates \textit{PL-GS}.
+- The difference is negative when $ x > 0.98$. In this case, we conclude that if we only consider the worst $2\%$ values of \textit{PL-EDA} and \textit{PL-GS}, then \textit{PL-GS} dominates \textit{PL-EDA}.
+- These ``worst'' $2\%$ values are much less likely than the ``best'' $30\%$ values mentioned in 3), as the estimated probability of these ``best'' and ``worst'' values is $0.3$ and $0.02$ respectively.
+- The difference is negative at $x = 0.5$ and at $x = 0.75$. This can be interpreted as PL-GS having a better median and a better $75\%$ quantile.
+
+
+
+
+
 
 
 
