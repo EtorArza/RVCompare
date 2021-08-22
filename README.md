@@ -132,7 +132,8 @@ cumulative_difference_plot(X_A_observed=PL_EDA_fitness,
 ## Step 3: Interpretation
 
 - A.- The probability that PL-GS obtains a better score than PL-EDA is a little higher than 0.5.
-⋅⋅⋅ <font size="1">To deduce this probability from the graph, we compute the difference between the area under diff(x) and the area on top of diff(x)=0.</font>
+
+ <font size="0.75">To deduce this probability from the graph, we compute the difference between the area under diff(x) and the area on top of diff(x)=0.</font>
 
 
 
