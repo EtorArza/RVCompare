@@ -126,19 +126,29 @@ cumulative_difference_plot(X_A_observed=PL_EDA_fitness,
                             labelB="PL-GS")
 ```
 
-![box-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_raw.png?raw=true)
+![cumulative differencec-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_raw.png?raw=true)
 
 
 ## Step 3: Interpretation
 
-- A.- The probability that PL-GS obtains a better score than PL-EDA is a little higher than 0.5.
+- **A.- The probability that PL-GS obtains a better score than PL-EDA is a little higher than 0.5.**
 
- <font size="0.75">To deduce this probability from the graph, we compute the difference between the area under diff(x) and the area on top of diff(x)=0.</font>
+ To deduce this probability from the graph, we compute the difference between the area on top of diff(x) (A1 + A3) and the area under diff(x)=0 (A2 + A4). Then we add 0.5 to this difference.
+ 
+ ![cumulative difference-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cp.png?raw=true)
 
 
+- **B.- Neither algorithm dominates the other one, and what is more, the dominance rate is near 0.5**
 
- have similar probabilities, as $\mathcal{C}_\mathcal{P}(\textit{PL-EDA},\textit{PL-GS}) \approx 0.5$. However, The area under $\diff(x)=0$ is a little larger than the area over $\diff(x)=0$, hence $\mathcal{P}(x_{eda} < x_{gs})$ is a little smaller than $\mathcal{P}(x_{gs} < x_{eda})$.	
-- Neither algorithm dominates the other one, and what is more, $\mathcal{C}_\mathcal{D}(\textit{PL-EDA},\textit{PL-GS}) \approx 0.5$.
+ The dominance rate can be deduced from the graph by measuring the poportion in which the difference is positive. 
+ In this case, the dominance rate is B1 + B2.
+
+ ![cumulative difference-plot](https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cd.png?raw=true)
+
+
+- **C.- Neither algorithm dominates the other one, and what is more, the dominance rate is near 0.5**
+
+
 - The difference is positive when $x < 0.3$, and therefore, if we only consider the best $30\%$ values of both algorithms, \textit{PL-EDA} dominates \textit{PL-GS}.
 - The difference is negative when $ x > 0.98$. In this case, we conclude that if we only consider the worst $2\%$ values of \textit{PL-EDA} and \textit{PL-GS}, then \textit{PL-GS} dominates \textit{PL-EDA}.
 - These ``worst'' $2\%$ values are much less likely than the ``best'' $30\%$ values mentioned in 3), as the estimated probability of these ``best'' and ``worst'' values is $0.3$ and $0.02$ respectively.
