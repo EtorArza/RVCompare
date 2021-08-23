@@ -144,8 +144,8 @@ In the following, we interpret the estimation of the cumulative difference plot,
 
 - **A.- The probability that a score of PL-EDA is better than a score of PL-GS is a little higher than 0.5.**
 
- To deduce this probability from the graph, we compute the difference between the area on top of diff(x)=0 and the area under diff(x)=0, and we add 0.5 to this difference.
- In this example, the estimated probability that the score of PL-EDA is better than the score of PL-GS  is (A1 - A2 + A3 - A4) + 0.5. 
+    To deduce this probability from the graph, we compute the difference between the area on top of diff(x)=0 and the area under diff(x)=0, and we add 0.5 to this difference.
+    In this example, the estimated probability that the score of PL-EDA is better than the score of PL-GS  is (A1 - A2 + A3 - A4) + 0.5. 
  
  
  <img src="https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cp.png?raw=true" width="500">
@@ -154,9 +154,9 @@ In the following, we interpret the estimation of the cumulative difference plot,
 
 - **B.- Neither algorithm dominates the other one, and what is more, the dominance rate is near 0.5**
 
- The dominance rate can be deduced from the graph by measuring the poportion in which the difference is positive. 
- In this example, the dominance rate is B1 + B2.
- The dominance rate can be interpreted as the extent to which PL-EDA dominates PL-GS (see [1] for details).
+    The dominance rate can be deduced from the graph by measuring the poportion in which the difference is positive. 
+    In this example, the dominance rate is B1 + B2.
+    The dominance rate can be interpreted as the extent to which PL-EDA dominates PL-GS (see [1] for details).
 
 
  <img src="https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cd.png?raw=true" width="500">
@@ -164,19 +164,19 @@ In the following, we interpret the estimation of the cumulative difference plot,
 
 - **C.- The difference is positive when x < 0.3, and therefore, if we only consider the best 30% values of both algorithms, PL-EDA dominates PL-GS**
 
-We say that one algorithm dominates the other one when the cumulative distribution function of one of the scores is higher or equal than the otherone in all the domain of definintion, see [1] for details.
-This is known as first order stochastic dominance [4].
+   We say that one algorithm dominates the other one when the cumulative distribution function of one of the scores is higher or equal than the otherone in all the domain of definintion, see [1] for details.
+   This is known as first order stochastic dominance [4].
 
 
 
 - **D.- Similarly, the difference is negative when x > 0.98. In this case, we conclude that if we only consider the worst 2% values of PL-EDA and PL-GS, then PL-GS dominates PL-EDA.**
 
-Note that these 2% worse values are much less likely than the best 30% values.
+   Note that these 2% worse values are much less likely than the best 30% values.
 
 
 - **E.- Similarly, the difference is negative when x > 0.98. In this case, we conclude that if we only consider the worst 2% values of PL-EDA and PL-GS, then PL-GS dominates PL-EDA.**
 
-The difference is negative at x = 0.5 and at x = 0.75. This can be interpreted as PL-GS having a better median and a better 75% quantile.
+   The difference is negative at x = 0.5 and at x = 0.75. This can be interpreted as PL-GS having a better median and a better 75% quantile.
 
 
 
