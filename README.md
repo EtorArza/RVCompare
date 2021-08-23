@@ -1,9 +1,11 @@
 
 # RVCompare
-A R package to compare two random variables and determine which of them takes lower values.
+A R package to compare two random variables and determine which of them takes lower values. 
 
-Let us see how to use this package to compare the performance of two optimization algorithms PL-EDA and PL-GS [1] in the instance N-t70n11xx of the Linear Ordering Problem [2]. 
-Suppose that we are given 400 measurements of the performance of these two algorithms in this instance (using the same number of objective evaluations in each measurament).
+All the details and the methodology are available in our paper [1].
+In the following, we show a quick start example.
+Let us see how to use this package to compare the scores of two optimization algorithms PL-EDA and PL-GS [2] in the instance N-t70n11xx of the Linear Ordering Problem [3]. 
+Suppose that we are given 400 measurements of the objective functions (from now on score) of these two algorithms in this instance.
 
 
 ## Step 0: Obtaining the data
@@ -132,10 +134,18 @@ cumulative_difference_plot(X_A_observed=PL_EDA_fitness,
 
 ## Step 3: Interpretation
 
-- **A.- The probability that PL-EDA obtains a better score than PL-GS is a little higher than 0.5.**
+The cumulative difference-plot compares the best scores on the left side (x < 0.5) and the worst scores in the right side (x > 0.5).
+In addition, when the difference is positive, then it means that PL-EDA is better than PL-GS in that quantile (see the labels in the plot).
+For example, since the difference is positive in x = 0.25, we can say that PL-EDA has a better 25% quantile than PL-GS.
+We can deduce many things from this plot.
+In the following, we interpret the estimation of the cumulative difference plot, but take into account that the actual difference is likely differnt to the estimation and is somewhere inside the confidence band.
+
+
+
+- **A.- The probability that a score of PL-EDA is better than a score of PL-GS is a little higher than 0.5.**
 
  To deduce this probability from the graph, we compute the difference between the area on top of diff(x)=0 and the area under diff(x)=0, and we add 0.5 to this difference.
- In this example, the estimated probability estimation is (A1 - A2 + A3 - A4) + 0.5. 
+ In this example, the estimated probability that the score of PL-EDA is better than the score of PL-GS  is (A1 - A2 + A3 - A4) + 0.5. 
  
  
  <img src="https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cp.png?raw=true" width="500">
@@ -146,24 +156,49 @@ cumulative_difference_plot(X_A_observed=PL_EDA_fitness,
 
  The dominance rate can be deduced from the graph by measuring the poportion in which the difference is positive. 
  In this example, the dominance rate is B1 + B2.
+ The dominance rate can be interpreted as the extent to which PL-EDA dominates PL-GS (see [1] for details).
 
 
  <img src="https://github.com/EtorArza/RVCompare/blob/main/readme_resources/cumulative_difference_plot_Cd.png?raw=true" width="500">
 
 
-- **C.- Neither algorithm dominates the other one, and what is more, the dominance rate is near 0.5**
+- **C.- The difference is positive when x < 0.3, and therefore, if we only consider the best 30% values of both algorithms, PL-EDA dominates PL-GS**
 
-
-- The difference is positive when $x < 0.3$, and therefore, if we only consider the best $30\%$ values of both algorithms, \textit{PL-EDA} dominates \textit{PL-GS}.
-- The difference is negative when $ x > 0.98$. In this case, we conclude that if we only consider the worst $2\%$ values of \textit{PL-EDA} and \textit{PL-GS}, then \textit{PL-GS} dominates \textit{PL-EDA}.
-- These ``worst'' $2\%$ values are much less likely than the ``best'' $30\%$ values mentioned in 3), as the estimated probability of these ``best'' and ``worst'' values is $0.3$ and $0.02$ respectively.
-- The difference is negative at $x = 0.5$ and at $x = 0.75$. This can be interpreted as PL-GS having a better median and a better $75\%$ quantile.
+We say that one algorithm dominates the other one when the cumulative distribution function of one of the scores is higher or equal than the otherone in all the domain of definintion, see [1] for details.
+This is known as first order stochastic dominance [4].
 
 
 
+- **D.- Similarly, the difference is negative when x > 0.98. In this case, we conclude that if we only consider the worst 2% values of PL-EDA and PL-GS, then PL-GS dominates PL-EDA.**
+
+Note that these 2% worse values are much less likely than the best 30% values.
+
+
+- **E.- Similarly, the difference is negative when x > 0.98. In this case, we conclude that if we only consider the worst 2% values of PL-EDA and PL-GS, then PL-GS dominates PL-EDA.**
+
+The difference is negative at x = 0.5 and at x = 0.75. This can be interpreted as PL-GS having a better median and a better 75% quantile.
 
 
 
+
+## Step 4: Conclusion
+
+Summarizing the above points, we conclude that the performance of the algorithms is quite similar, and PL-EDA can obtain both better and worse scores than PL-GS.
+The probability that PL-EDA takes these better values is much higher than the probability that it takes worse values.
+Therefore, if we are in a setting in which repeating the execution of the algorithms is reasonable, PL-EDA is a much better algorithm.
+On the other hand, if it is critical to avoid really bad values, then PL-GS would be preferred.
+
+
+
+## References
+
+[1] https://github.com/EtorArza/RVCompare-paper
+
+[2] Santucci, V., Ceberio, J., & Baioletti, M. (2020). Gradient search in the space of permutations: An application for the linear ordering problem. Proceedings of the 2020 Genetic and Evolutionary Computation Conference Companion, 1704-1711. https://doi.org/10.1145/3377929.3398094
+
+[3] Schiavinotto, T., & Stützle, T. (2004). The Linear Ordering Problem: Instances, Search Space Analysis and Algorithms. Journal of Mathematical Modelling and Algorithms, 3(4), 367-402. https://doi.org/10.1023/B:JMMA.0000049426.06305.d8
+
+[4] Quirk, J. P., & Saposnik, R. (1962). Admissibility and measurable utility functions. The Review of Economic Studies, 29(2), 140-146. https://doi.org/10.2307/2295819
 
 
 
