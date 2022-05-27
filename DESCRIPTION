@@ -9,6 +9,7 @@ Depends:
   stats (>= 3.4.4),
   pracma (>= 2.2.2),
   ggplot2 (>= 3.2.0),
+  methods (>= 3.0.3),
 Imports:
     Rcpp (>= 1.0.7),
     utils (>= 3.4.4)

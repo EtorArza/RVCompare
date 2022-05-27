@@ -669,6 +669,7 @@ get_Y_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=
 #' @return the ggplot figure object.
 #' @export
 #' @import ggplot2
+#' @importFrom methods className is
 #' @examples
 #' ### Example 1 ###
 #'
@@ -685,7 +686,7 @@ plot_Y_AB <- function(estimated_Y_AB_bounds, labels=c("X_A","X_B"), plotDifferen
     print("ERROR: The length of labels shouuld be 2")
   }
 
-  if (class(labels) != "character") {
+  if (is(labels, className("character"))) {
     print("ERROR: Labels needs to be a string vector of size 2. For example, labels=c(\"Algorithm 1\", \"Algorithm 2\")")
   }
 
@@ -1243,6 +1244,7 @@ xHasEnoughValues <- function(X, minRequiredValues) {
 #' It is just a convinient wrapper of dnorm from the package 'stat' with some parameter checks.
 #' @param mu the mean of the normal distribution.
 #' @param sigma the standard deviation of the normal distribution.
+#' @importFrom methods className is
 #' @return Returns a callable function with a single parameter that describes the probability of the normal distribution in that point.
 #' @family probability density distributions
 #' @export
@@ -1252,11 +1254,11 @@ xHasEnoughValues <- function(X, minRequiredValues) {
 normalDensity <- function(mu, sigma) {
 
   # parameter checks
-  if (class(mu) != "numeric") {
+  if (!is(mu, className("numeric"))) {
     print("ERROR: mu is not numeric.")
     stop()
   }
-  if (class(sigma) != "numeric") {
+  if (!is(sigma, className("numeric"))) {
     print("ERROR: sigma is not numeric.")
     stop()
   }
@@ -1411,6 +1413,7 @@ coerceToDifferenceArea <- function(p, v) {
 
 #' Check if xlims is a tuple that represents a valid bounded interval in the real space.
 #' @param xlims the tuple to be checked.
+#' @importFrom methods className is
 #' @return TRUE if it is a valid tuple. Otherwise prints error mesage and returns FALSE
 isXlimsValid <- function(xlims) {
 
@@ -1419,7 +1422,7 @@ isXlimsValid <- function(xlims) {
     return(FALSE)
   }
 
-  if (class(xlims) != "numeric") {
+  if (!is(xlims, className("numeric"))) {
     print("ERROR: xlims is not numeric.")
     return(FALSE)
   }
