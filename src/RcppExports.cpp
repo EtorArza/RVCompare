@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // cpp_helper_from_ranks_to_integrable_values
 NumericVector cpp_helper_from_ranks_to_integrable_values(NumericVector rank_interval_mult, int j_max);
 RcppExport SEXP _RVCompare_cpp_helper_from_ranks_to_integrable_values(SEXP rank_interval_multSEXP, SEXP j_maxSEXP) {

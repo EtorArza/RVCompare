@@ -10,7 +10,7 @@ Depends:
   pracma (>= 2.2.2),
   ggplot2 (>= 3.2.0),
 Imports:
-    Rcpp (>= 0.11.0),
+    Rcpp (>= 1.0.7),
     utils (>= 3.4.4)
 License: CC0
 Encoding: UTF-8
