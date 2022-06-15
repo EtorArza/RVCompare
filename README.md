@@ -11,6 +11,10 @@ Suppose that we are given 400 measurements of the objective functions (from now 
 ## Step 0: Obtaining the data
 We just save the fitness values in two arrays:
 
+
+<details><summary>Click here to expand code</summary>
+<p>
+
 ```R
 PL_EDA_fitness <- c(
 52235, 52485, 52542, 52556, 52558, 52520, 52508, 52491, 52474, 52524,
@@ -96,6 +100,8 @@ PL_GS_fitness <- c(
 52230, 52500, 52487, 52517, 52473, 52488, 52450, 52203, 52215, 52490,
 52479, 52515, 52210, 52485, 52516, 52504, 52521, 52499, 52503, 52526)
 ```
+</p>
+</details>
 
 ## Step 1: Visualizing the data
 The first step is to visualize the data with a simple visualization tool such as a box-plot or a histogram.
@@ -188,11 +194,30 @@ The probability that PL-EDA takes these better values is much higher than the pr
 Therefore, if we are in a setting in which repeating the execution of the algorithms is reasonable, PL-EDA is a much better algorithm.
 On the other hand, if it is critical to avoid really bad values, then PL-GS would be preferred.
 
+## Citation
+
+If you found this work useful, I would appreciate a citation.
+
+```bibtex
+@article{doi:10.1080/10618600.2022.2084405,
+author = {Etor Arza and Josu Ceberio and Ekhiñe Irurozki and Aritz Pérez},
+title = {Comparing two samples through stochastic dominance: a graphical approach},
+journal = {Journal of Computational and Graphical Statistics},
+volume = {0},
+number = {ja},
+pages = {1-38},
+year  = {2022},
+publisher = {Taylor & Francis},
+doi = {10.1080/10618600.2022.2084405},
+URL = {https://doi.org/10.1080/10618600.2022.2084405},
+eprint = {https://doi.org/10.1080/10618600.2022.2084405}
+}
+```
 
 
 ## References
 
-[1] https://github.com/EtorArza/RVCompare-paper
+[1] Arza, E., Ceberio, J., Irurozki, E., & Pérez, A. (2022). Comparing two samples through stochastic dominance: A graphical approach. Journal of Computational and Graphical Statistics, 1–38. https://doi.org/10.1080/10618600.2022.2084405. Open version: https://doi.org/10.48550/arXiv.2203.07889.
 
 [2] Santucci, V., Ceberio, J., & Baioletti, M. (2020). Gradient search in the space of permutations: An application for the linear ordering problem. Proceedings of the 2020 Genetic and Evolutionary Computation Conference Companion, 1704-1711. https://doi.org/10.1145/3377929.3398094
 
