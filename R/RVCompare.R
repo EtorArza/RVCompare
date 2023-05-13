@@ -669,7 +669,6 @@ get_Y_AB_bounds_DKW <- function(X_A_observed, X_B_observed, nOfEstimationPoints=
 #' @return the ggplot figure object.
 #' @export
 #' @import ggplot2
-#' @importFrom methods className is
 #' @examples
 #' ### Example 1 ###
 #'
@@ -686,7 +685,8 @@ plot_Y_AB <- function(estimated_Y_AB_bounds, labels=c("X_A","X_B"), plotDifferen
     print("ERROR: The length of labels shouuld be 2")
   }
 
-  if (is(labels, className("character"))) {
+
+  if (!is.character(labels)) {
     print("ERROR: Labels needs to be a string vector of size 2. For example, labels=c(\"Algorithm 1\", \"Algorithm 2\")")
   }
 
