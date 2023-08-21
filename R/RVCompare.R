@@ -7,6 +7,7 @@
 #' @import Rcpp ggplot2 pracma
 #' @useDynLib RVCompare
 #' @name RVCompare
+#' @aliases RVCompare-package
 NULL
 
 
