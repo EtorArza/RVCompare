@@ -16,5 +16,7 @@ Imports:
 License: CC0
 Encoding: UTF-8
 RoxygenNote: 7.2.3
+URL: https://github.com/EtorArza/RVCompare
+BugReports: https://github.com/EtorArza/RVCompare/issues
 LinkingTo:
     Rcpp
